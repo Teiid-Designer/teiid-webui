@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.teiid.webui</groupId>
+    <artifactId>teiid-webui-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>teiid-webui-deps</artifactId>
+  <packaging>pom</packaging>
+
+  <name>Teiid WebUI Parent With Dependencies</name>
+  <description>
+    The parent with dependencies declares all dependency versions in dependencyManagement.
+    All modules extend this parent, except for the boms (which are used here).
+  </description>
+
+  <properties>
+    <version.com.google.gwt>2.6.1</version.com.google.gwt>
+    <version.org.jboss.integration-platform>6.0.0.CR13</version.org.jboss.integration-platform>
+    <version.org.jboss.errai>3.0.4.Final</version.org.jboss.errai>
+    <version.org.uberfire>0.6.0-SNAPSHOT</version.org.uberfire>
+    <version.org.jboss.teiid>8.7.0.Final</version.org.jboss.teiid>
+    <version.jboss-as-cli>7.2.0.Final</version.jboss-as-cli>
+    <version.jboss-as-controller>7.2.0.Final</version.jboss-as-controller>
+    <version.org.mortbay.jetty>6.1.25</version.org.mortbay.jetty>
+    
+    <!-- temporary: makes the enforcerRule (illegal-transitive-dependency-check) not to break the build -->
+    <illegaltransitivereportonly>true</illegaltransitivereportonly>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+
+      <!-- Teiid WebUI  -->
+      <dependency>
+        <groupId>org.teiid.webui</groupId>
+        <artifactId>teiid-webui-bom</artifactId>
+        <type>pom</type>
+        <version>${project.version}</version>
+        <scope>import</scope>
+      </dependency>
+
+      <!-- Integration Platform -->
+      <dependency>
+        <groupId>org.jboss.integration-platform</groupId>
+        <artifactId>jboss-integration-platform-bom</artifactId>
+        <type>pom</type>
+        <version>${version.org.jboss.integration-platform}</version>
+        <scope>import</scope>
+      </dependency>
+
+      <!-- UberFire -->
+      <dependency>
+        <groupId>org.uberfire</groupId>
+        <artifactId>uberfire-bom</artifactId>
+        <type>pom</type>
+        <version>${version.org.uberfire}</version>
+        <scope>import</scope>
+      </dependency>
+
+      <!-- GWT and GWT Extensions -->
+      <dependency>
+        <groupId>com.google.gwt</groupId>
+        <artifactId>gwt-user</artifactId>
+        <version>${version.com.google.gwt}</version>
+      </dependency>
+
+      <!-- Teiid -->
+      <dependency>
+        <groupId>org.jboss.teiid</groupId>
+        <artifactId>teiid-common-core</artifactId>
+        <version>${version.org.jboss.teiid}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.teiid</groupId>
+        <artifactId>teiid-client</artifactId>
+        <version>${version.org.jboss.teiid}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.teiid</groupId>
+        <artifactId>teiid-admin</artifactId>
+        <version>${version.org.jboss.teiid}</version>
+      </dependency>
+      
+      <!-- Third party libraries -->
+      <dependency>
+        <groupId>org.jboss.as</groupId>
+        <artifactId>jboss-as-cli</artifactId>
+        <version>${version.jboss-as-cli}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jboss.as</groupId>
+        <artifactId>jboss-as-controller</artifactId>
+        <version>${version.jboss-as-controller}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.inject</groupId>
+        <artifactId>guice</artifactId>
+        <version>3.0</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.owasp.encoder</groupId>
+        <artifactId>encoder</artifactId>
+        <version>1.1.1</version>
+      </dependency>
+
+      <!-- CDI Development Utils -->
+      <!-- This must be placed above com.google.gwt:gwt-dev to override the
+         Jetty that is present there -->
+      <dependency>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>jetty</artifactId>
+        <version>${version.org.mortbay.jetty}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>jetty-plus</artifactId>
+        <version>${version.org.mortbay.jetty}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>jetty-naming</artifactId>
+        <version>${version.org.mortbay.jetty}</version>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
+
+</project>

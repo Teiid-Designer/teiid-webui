@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<div class="row">
+  <div class="col-sm-12">
+    <div>
+      <h2><div data-field="label-dsprops-title"></div></h2>
+      <hr />
+      <div class="row">
+        <div class="col-sm-6">
+          <div class="alert alert-info" role="alert" data-field="label-dsprops-status"></div>
+        </div>
+        <div class="col-sm-6"></div>
+      </div>
+      <h3>Source Type</h3>
+      <div><em>Select from our list of known data source types, or add your own.</em></div>
+      <div class="row">
+        <div class="col-sm-11" data-field="dtypes-button-panel"></div>
+        <div class="col-sm-1"></div>
+      </div>
+      <div class="row">
+        <div class="col-sm-1 vcenter"><h3>Name<h3></div>
+        <div class="col-sm-3 vcenter"><input class="form-control" data-field="textbox-dsprops-name" title="The name of the Data Source"></input></div>
+        <div class="col-sm-8"></div>
+      </div>
+      <div class="row" style="margin-bottom:10px">
+        <div class="col-sm-1 vcenter"><h3>Translator<h3></div>
+        <div class="col-sm-3 vcenter" data-field="listbox-dsprops-translator"></div>
+        <div class="col-sm-8"></div>
+      </div>
+      <p></p>
+      <h3>Connection Properties</h3>
+      <div data-field="editor-dsprops-core-properties"></div>
+      <div class="accordion" id="accordion1">
+        <div class="accordion-group">
+          <div class="accordion-heading">
+            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion1" href="#collapseOne"><strong>Advanced Properties</strong></a>
+          </div>
+          <div id="collapseOne" class="accordion-body collapse">
+            <div class="accordion-inner">
+              <div data-field="editor-dsprops-adv-properties"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="accordion" id="accordion2">
+        <div class="accordion-group">
+          <div class="accordion-heading">
+            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo"><strong>Import Properties</strong></a>
+          </div>
+          <div id="collapseTwo" class="accordion-body collapse">
+            <div class="accordion-inner">
+              <div data-field="editor-dsprops-import-properties"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-12">
+      <button data-field="btn-dsprops-save" class="btn btn-primary">Save Changes</button>
+      <button data-field="btn-dsprops-cancel" class="btn btn-default">Cancel</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,8 @@
+<!--YesNoRadioButton.ui.xml-->
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder" xmlns:g="urn:import:com.google.gwt.user.client.ui">
+<g:VerticalPanel>
+  <g:RadioButton ui:field="visible" name="visibilityButton" value="true" enabled="true">Published and Viewable through endpoints</g:RadioButton>
+  <g:RadioButton ui:field="notVisible" name="visibilityButton" value="false" enabled="true">Internal only - not accessible to outside parties</g:RadioButton>
+</g:VerticalPanel>
+</ui:UiBinder>

@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.teiid.webui</groupId>
+    <artifactId>teiid-webui-deps</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../teiid-webui-deps/pom.xml</relativePath>
+  </parent>
+  
+  <properties>
+    <version.org.uberfire>0.6.0-SNAPSHOT</version.org.uberfire>
+    <maven.gwt.plugin.version>2.6.1</maven.gwt.plugin.version>
+    <errai.jboss.home>${user.home}/apps/DV600-Servers/DV610-ER3-TeiidWebTest</errai.jboss.home>
+  </properties>
+  
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.uberfire</groupId>
+        <artifactId>uberfire-bom</artifactId>
+        <version>${version.org.uberfire}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.jboss.errai.bom</groupId>
+        <artifactId>errai-bom</artifactId>
+        <version>${version.org.jboss.errai}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+    </dependencies>
+  </dependencyManagement>
+
+  <artifactId>teiid-webui-webapp</artifactId>
+  <packaging>war</packaging>
+
+  <name>Teiid WebUI WebApp</name>
+  
+  <dependencies>
+  
+     <dependency>
+      <groupId>org.jboss.errai</groupId>
+      <artifactId>errai-ui</artifactId>
+    </dependency>
+  
+    <dependency>
+      <groupId>org.jboss.errai</groupId>
+      <artifactId>errai-data-binding</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jboss.errai</groupId>
+      <artifactId>errai-cdi-jboss</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+    </dependency>
+
+    <!-- UberFire -->
+    <dependency>
+      <groupId>org.uberfire</groupId>
+      <artifactId>uberfire-all</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.uberfire</groupId>
+      <artifactId>uberfire-workbench-processors</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.uberfire</groupId>
+      <artifactId>uberfire-security-client</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.uberfire</groupId>
+      <artifactId>uberfire-workbench-client-views-patternfly</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Teiid -->
+    <dependency>
+       <groupId>org.jboss.teiid</groupId>
+       <artifactId>teiid-common-core</artifactId>
+    </dependency>
+    <dependency>
+       <groupId>org.jboss.teiid</groupId>
+       <artifactId>teiid-client</artifactId>
+    </dependency>
+    <dependency>
+       <groupId>org.jboss.teiid</groupId>
+       <artifactId>teiid-admin</artifactId>
+    </dependency>
+    
+    <!-- Third party libraries -->
+    <dependency>
+      <groupId>org.owasp.encoder</groupId>
+      <artifactId>encoder</artifactId>
+    </dependency>
+      
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Errai AS -->
+    <dependency>
+      <groupId>org.jboss.errai</groupId>
+      <artifactId>errai-jboss-as-support</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jboss.errai</groupId>
+      <artifactId>errai-weld-integration</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jboss.errai</groupId>
+      <artifactId>errai-security-picketlink</artifactId>
+    </dependency>
+
+    <!-- Weld Modules -->
+    <dependency>
+      <groupId>org.jboss.weld.se</groupId>
+      <artifactId>weld-se-core</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    
+    <!-- All of this stuff is supplied by the app server and must not
+    be deployed with the WAR file! -->
+    <dependency><groupId>org.slf4j</groupId><artifactId>slf4j-api</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.slf4j</groupId><artifactId>slf4j-ext</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>javax.enterprise</groupId><artifactId>cdi-api</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>javax.inject</groupId><artifactId>javax.inject</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>javax.validation</groupId><artifactId>validation-api</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>junit</groupId><artifactId>junit</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.hibernate.common</groupId><artifactId>hibernate-commons-annotations</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.hibernate.javax.persistence</groupId><artifactId>hibernate-jpa-2.0-api</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.hibernate</groupId><artifactId>hibernate-core</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.hibernate</groupId><artifactId>hibernate-entitymanager</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.hibernate</groupId><artifactId>hibernate-validator</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-cdi-jetty</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-codegen-gwt</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-data-binding</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-ioc</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-ioc-bus-support</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-javax-enterprise</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-jaxrs-client</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-jpa-client</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-navigation</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-tools</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-ui</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.resteasy</groupId><artifactId>jaxrs-api</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.spec.javax.interceptor</groupId><artifactId>jboss-interceptors-api_1.1_spec</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.spec.javax.transaction</groupId><artifactId>jboss-transaction-api_1.1_spec</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.weld.servlet</groupId><artifactId>weld-servlet-core</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.weld</groupId><artifactId>weld-api</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.weld</groupId><artifactId>weld-spi</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>xml-apis</groupId><artifactId>xml-apis</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>com.sun.xml.bind</groupId><artifactId>jaxb-impl</artifactId><scope>provided</scope></dependency>
+
+  </dependencies>
+
+  <build>
+
+    <resources>
+      <!-- Include src/main/java in order not to break the Eclipse GWT plug-in -->
+      <resource>
+        <directory>src/main/java</directory>
+      </resource>
+      <!-- Include module descriptors from src/main/resources in order not to break the Intellij GWT plug-in -->
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
+
+    <pluginManagement>
+      <plugins>
+        <!--This plugin's configuration is used to store Eclipse m2e settings
+          only. It has no influence on the Maven build itself. -->
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>gwt-maven-plugin</artifactId>
+                    <versionRange>[2.4.0,)</versionRange>
+                    <goals>
+                      <goal>resources</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <execute />
+                  </action>                
+                </pluginExecution>
+                <pluginExecution>
+                	<pluginExecutionFilter>
+                		<groupId>org.apache.maven.plugins</groupId>
+                		<artifactId>maven-war-plugin</artifactId>
+                		<versionRange>[2.3,)</versionRange>
+                		<goals>
+                			<goal>exploded</goal>
+                		</goals>
+                	</pluginExecutionFilter>
+                	<action>
+                		<ignore></ignore>
+                	</action>
+                </pluginExecution>
+                <pluginExecution>
+                	<pluginExecutionFilter>
+                		<groupId>org.codehaus.mojo</groupId>
+                		<artifactId>
+                			build-helper-maven-plugin
+                		</artifactId>
+                		<versionRange>[1.7,)</versionRange>
+                		<goals>
+                			<goal>add-source</goal>
+                		</goals>
+                	</pluginExecutionFilter>
+                	<action>
+                		<ignore></ignore>
+                	</action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    
+    <plugins>
+      <!-- Put the generated sources from annotation processing on the classpath so GWT Dev Mode can see them -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>target/generated-sources/annotations</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${basedir}</directory>
+              <includes>
+                <include>.errai/**</include>
+                <include>.niogit/**</include>
+                <include>src/main/webapp/WEB-INF/classes/**</include>
+                <include>src/main/webapp/WEB-INF/lib/**</include>
+              </includes>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>gwt-maven-plugin</artifactId>
+        <configuration>
+          <server>org.jboss.errai.cdi.server.gwt.JBossLauncher</server>
+          <runTarget>teiid-webui-webapp/teiidweb.html</runTarget>
+          <localWorkers>4</localWorkers>
+          <module>org.teiid.FastCompiledTeiidWebUI</module>
+          <logLevel>INFO</logLevel>
+          <strict>true</strict>
+          <compileSourcesArtifacts>
+              <!-- Teiid WebUI -->
+              <!-- Add here the client modules -->
+              <!--compileSourcesArtifact>org.teiid:teiid-client-module</compileSourcesArtifact-->
+          </compileSourcesArtifacts>
+
+          <!-- do not insert line breaks in this string; it breaks Windows compatibility -->
+          <extraJvmArgs>-Xmx1g -Xms756m -XX:MaxPermSize=256m -XX:CompileThreshold=1000 -Derrai.jboss.home=${errai.jboss.home} "-Derrai.jboss.javaopts=-XX:MaxPermSize=256m -Dorg.jboss.weld.nonPortableMode=true" -Derrai.dev.context=${project.artifactId} -Derrai.jboss.javaagent.path=${settings.localRepository}/org/jboss/errai/errai-client-local-class-hider/${version.org.jboss.errai}/errai-client-local-class-hider-${version.org.jboss.errai}.jar=classPattern=${project.groupId}.client/.*</extraJvmArgs>
+          <gwtSdkFirstInClasspath>true</gwtSdkFirstInClasspath>
+        </configuration>
+        <executions>
+          <execution>
+            <id>gwt-clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>gwt-compile</id>
+            <goals>
+              <goal>resources</goal>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>compile</phase>
+            <goals>
+              <goal>exploded</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
+          <warName>${project.artifactId}</warName>
+          <outputFileNameMapping>@{artifactId}@-@{baseVersion}@@{dashClassifier?}@.@{extension}@</outputFileNameMapping>
+          <packagingExcludes>**/javax/**/*.*,**/client/**/*.class,**/*.symbolMap</packagingExcludes>
+          <archive>
+            <addMavenDescriptor>false</addMavenDescriptor>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <!-- Tests are skipped by default because they require additional GWT dependencies. Run mvn with
+        -Pintegration-test to enable testing. -->
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skipTests>true</skipTests>
+        </configuration>
+      </plugin>
+    </plugins>
+
+  </build>
+
+  <profiles>
+    <profile>
+      <id>fullProfile</id>
+      <activation>
+        <property>
+          <name>full</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin><!-- Keep in sync with soa profile -->
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>gwt-maven-plugin</artifactId>
+            <configuration>
+              <!-- Build all GWT permutations and optimize them -->
+              <module>org.teiid.TeiidWebUI</module>
+              <draftCompile>false</draftCompile>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

@@ -1,0 +1,21 @@
+.customToggle
+{
+    background-color: white;
+    font-size: 120%; 
+    font-weight: bold;
+    width:180px;
+    height:56px;
+    text-align:center;
+    line-height:50px;
+    padding: 2px 3px 0px 3px;
+}
+.customToggle-up, .customToggle-up-hovering
+{
+    background-color:white;
+    border: #DDDDDD 2px solid;
+}
+.customToggle-down, .customToggle-down-hovering
+{
+    background-color:white;
+    border: #0000FF 4px solid;
+}

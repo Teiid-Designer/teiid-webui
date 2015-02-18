@@ -1,0 +1,7 @@
+.dataGridSelectedRow {
+  color: #3366FF;
+  background-color: #EEEEEE;
+  font-weight: bold;
+  height: auto;
+  overflow: auto;
+}

@@ -1,0 +1,12 @@
+.joinToggle
+{
+    text-align:center;
+}
+.joinToggle-up, .joinToggle-up-hovering
+{
+    border: #DDDDDD 1px solid;
+}
+.joinToggle-down, .joinToggle-down-hovering
+{
+    border: #0000FF 3px solid;
+}
