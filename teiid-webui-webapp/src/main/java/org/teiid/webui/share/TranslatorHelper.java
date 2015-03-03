@@ -170,6 +170,10 @@ public class TranslatorHelper {
 		if(driverName.startsWith("modeshape")) { //$NON-NLS-1$
 			return MODESHAPE;
 		}
+		
+		if(driverName.startsWith("h2")) { //$NON-NLS-1$
+			return H2;
+		}
 
 		return JDBC_ANSI;
 	}
