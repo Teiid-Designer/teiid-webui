@@ -42,8 +42,8 @@ import org.teiid.webui.share.services.StringUtils;
 public class DataVirtDownloadServlet extends HttpServlet {
 
 	private static final long serialVersionUID = DataVirtDownloadServlet.class.hashCode();
-	private static final String DV600_JDBC_JAR = "teiid-8.4.1-redhat-7-jdbc.jar";
-	private static final String DV610_JDBC_JAR = "teiid-8.7.1.redhat-6-jdbc.jar";
+	private static final String TEIID_JDBC_JAR_PREFIX = "teiid-";
+	private static final String TEIID_JDBC_JAR_SUFFIX = "-jdbc.jar";
 
     @Inject
     protected TeiidService teiidService;
@@ -108,22 +108,30 @@ public class DataVirtDownloadServlet extends HttpServlet {
     	String homeDir = System.getProperty("jboss.home.dir");
     	
         try {
-        	String jdbcJarName = DV600_JDBC_JAR;
         	String jarDir = null;
         	if(isOpenShift()) {
         		jarDir = homeDir+"/versions/6.1.0/standalone/configuration/";
         	} else {
         		jarDir = homeDir+"/dataVirtualization/jdbc/";
         	}
-        	String jdbcJarFileName = jarDir+DV600_JDBC_JAR;
-        	// Assume DV600 jarFile name.  If it doesnt exist, then go with DV610
-        	File jarFile = new File(jdbcJarFileName);
-        	if(!jarFile.exists()) {
-            	jdbcJarName = DV610_JDBC_JAR;
-            	jdbcJarFileName = jarDir+DV610_JDBC_JAR;
-            	jarFile = new File(jdbcJarFileName);
-        	}
+        	
+        	// Find the JDBC jar in the directory
+        	String jdbcJarName = null;
+        	File folder = new File(jarDir);
+        	File[] listOfFiles = folder.listFiles();
 
+        	for (int i = 0; i < listOfFiles.length; i++) {
+        		if (listOfFiles[i].isFile()) {
+        			String fileName = listOfFiles[i].getName();
+        			if(fileName!=null && fileName.startsWith(TEIID_JDBC_JAR_PREFIX) && fileName.endsWith(TEIID_JDBC_JAR_SUFFIX)) {
+        				jdbcJarName = fileName;
+        				break;
+        			}
+        		}
+        	}        	
+        	       	
+        	String jdbcJarFileName = jarDir+jdbcJarName;
+        	File jarFile = new File(jdbcJarFileName);
         	try {
         		fileInputStream = new FileInputStream(jarFile);    	
         	} catch (Exception e) {
