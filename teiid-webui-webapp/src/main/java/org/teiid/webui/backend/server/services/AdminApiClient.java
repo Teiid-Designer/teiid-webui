@@ -56,21 +56,6 @@ public class AdminApiClient {
 	private Locale locale;
     private String serverHost;
 
-	/**
-	 * Constructor.
-	 * @param endpoint
-	 */
-//	public AdminApiClient() {
-//		if(admin==null) {
-//		    try {
-//				admin = getAdminApi("localhost",9999,"admin","1admin1!");
-//			} catch (Exception e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}	
-//		}
-//	}
-	
     /**
      * Constructor.
      * @param endpoint
@@ -135,15 +120,6 @@ public class AdminApiClient {
             return admin;
     }
     
-//    try {
-//    	25.client = ModelControllerClient.Factory.create(InetAddress.getByName("127.0.0.1"), 9999);
-//    	26.final ModelNode response = client.execute(new OperationBuilder(request).build());
-//    	27. 
-//    	28.return response.get(ClientConstants.RESULT).get("data-source").asList();
-//    	29.} finally {
-//    	30.safeClose(client);
-//    	31.}
-    
     /**
      * Establish the serverHost this is running on. Only need to do this once.
      */
@@ -163,12 +139,13 @@ public class AdminApiClient {
     		serverIP = System.getenv("OPENSHIFT_DV_IP");
     	}
 
+    	// If no OpenShift detected, check if management port has been set
     	if(serverIP==null || serverIP.trim().isEmpty()) {
-    		// Lookup the server ip address for the server this is running on.
-    		serverIP = System.getProperty("jboss.bind.address");
+    		serverIP = System.getProperty("jboss.management.native.port");
     	}
 
-    	// If the server bind address is set, override the default 'localhost'
+    	// If management port has been set, it overrides LOCALHOST (127.0.0.1)
+    	// If management port has NOT been set, defaults to LOCALHOST
     	if(serverIP!=null && !serverIP.trim().isEmpty()) {
     		serverHost = serverIP;
     	}
