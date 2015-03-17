@@ -1511,6 +1511,11 @@ public class TeiidService implements ITeiidService {
 		return suffix;
 	}
 	
+	/**
+	 * Determine the server HostName. Used to determine whether the application is running on OpenShift and the hostName
+	 * is also used to build the urls for REST, OData and JDBC
+	 * @return
+	 */
     private String getServerHost() {
     	String serverHost = LOCALHOST;
     	
@@ -1519,11 +1524,14 @@ public class TeiidService implements ITeiidService {
     	if(!StringUtils.isEmpty(sHost)) {
     		sHost = Constants.OPENSHIFT_HOST_PREFIX+sHost;  // prepend to designate its openshift DNS name
     	}
+    	
+    	// If not OpenShift, see if the jboss.bind.address is set
     	if(StringUtils.isEmpty(sHost)) {
     		sHost = System.getProperty("jboss.bind.address");
     	}
     	
-    	// If the server bind address is set, override the default 'localhost'
+    	// If the jboss bind address is set, use it
+    	// Otherwise, falls back to default LOCALHOST
     	if(!StringUtils.isEmpty(sHost)) {
     		serverHost = sHost;
     	}
