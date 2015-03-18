@@ -882,6 +882,14 @@ public class DataSourcePropertiesPanel extends Composite {
     		statusText = statusEnterName;
     	}
     	
+    	// Check for valid service name
+    	if(statusText.equals(Constants.OK)) {
+    		String nameStatus = StringUtils.checkValidServiceName(serviceName);
+    		if(!nameStatus.equals(Constants.OK)) {
+    			statusText = nameStatus;
+    		}
+    	}
+    	
     	// Ensure that dataSource name is not already being used
     	if(statusText.equals(Constants.OK)) {
     		String nameStatus = checkDSNameInUse(serviceName);
