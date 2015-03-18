@@ -76,8 +76,8 @@ public class Constants {
 	public static final String TEST_CONNECTION_FAILED = "Could not connect - please check source properties and server log, then enter desired properties";
     public static final String TEST_CONNECTION_ERROR_LOADING_SOURCES = "Error - could not load the available sources";
 
-	public static final String SERVICE_NAME_CANNOT_BE_EMPTY_MSG = "The service name cannot be empty";
-	public static final String SERVICE_NAME_FIRST_CHAR_MUST_BE_ALPHA_MSG = "The first character of the service name must be an alphabetic character";
+	public static final String SERVICE_NAME_CANNOT_BE_EMPTY_MSG = "The name cannot be empty";
+	public static final String SERVICE_NAME_FIRST_CHAR_MUST_BE_ALPHA_MSG = "The first character of the name must be an alphabetic character";
 
 	public static final String REST_PROCNAME = "RestProc";
     public static final String REST_XML_GROUPTAG = "Elems";
