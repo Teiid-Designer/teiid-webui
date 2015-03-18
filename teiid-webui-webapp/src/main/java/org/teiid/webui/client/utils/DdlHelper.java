@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.teiid.webui.share.Constants;
+import org.teiid.webui.share.services.StringUtils;
 
 
 public class DdlHelper {
@@ -43,7 +44,7 @@ public class DdlHelper {
 		sb.append(" AS SELECT ");
 		sb.append(getColString(columnNames));
 		sb.append(" FROM ");
-		sb.append(sourceName);
+		sb.append(StringUtils.escapeSQLName(sourceName));
 		sb.append(";");
 		
 		return sb.toString();
@@ -65,11 +66,11 @@ public class DdlHelper {
 		sb.append(getColWithTypeString(columnNames,typeNames));
 		sb.append(") AS \nSELECT ");
 		sb.append(" ROW_NUMBER() OVER (ORDER BY ");
-		sb.append(columnNames.get(0));
+		sb.append(StringUtils.escapeSQLName(columnNames.get(0)));
 		sb.append(") , ");
 		sb.append(getColString(columnNames));
 		sb.append(" \nFROM ");
-		sb.append(sourceName);
+		sb.append(StringUtils.escapeSQLName(sourceName)); 
 		sb.append(";");
 		
 		return sb.toString();
@@ -94,26 +95,26 @@ public class DdlHelper {
 		sb.append(getColWithTypeString(rhsColNames,rhsColTypes));
 		sb.append(") AS \nSELECT ");
 		sb.append(" ROW_NUMBER() OVER (ORDER BY ");
-		sb.append(lhsColNames.get(0));
+		sb.append(StringUtils.escapeSQLName(lhsColNames.get(0)));
 		sb.append(") , ");
 		sb.append(getColString(lhsColNames));
 		sb.append(", ");
 		sb.append(getColString(rhsColNames));
 		sb.append(" \nFROM ");
-		sb.append(lhsTableName);
+		sb.append(StringUtils.escapeSQLName(lhsTableName));
 		if(Constants.JOIN_TYPE_INNER.equals(joinType)) {
-			sb.append("\n  INNER JOIN "+rhsTableName);
+			sb.append("\n  INNER JOIN "+StringUtils.escapeSQLName(rhsTableName));
 		} else if(Constants.JOIN_TYPE_LEFT_OUTER.equals(joinType)) {
-			sb.append("\n  LEFT OUTER JOIN "+rhsTableName);
+			sb.append("\n  LEFT OUTER JOIN "+StringUtils.escapeSQLName(rhsTableName));
 		} else if(Constants.JOIN_TYPE_RIGHT_OUTER.equals(joinType)) {
-			sb.append("\n  RIGHT OUTER JOIN "+rhsTableName);
+			sb.append("\n  RIGHT OUTER JOIN "+StringUtils.escapeSQLName(rhsTableName));
 		} else if(Constants.JOIN_TYPE_FULL_OUTER.equals(joinType)) {
-			sb.append("\n FULL OUTER JOIN "+rhsTableName);
+			sb.append("\n FULL OUTER JOIN "+StringUtils.escapeSQLName(rhsTableName));
 		} else {
-			sb.append("\n  INNER JOIN "+rhsTableName);
+			sb.append("\n  INNER JOIN "+StringUtils.escapeSQLName(rhsTableName));
 		}
 		sb.append(" ON ");
-		sb.append(lhsCriteriaCol+" = "+rhsCriteriaCol);
+		sb.append(StringUtils.escapeSQLName(lhsCriteriaCol)+" = "+StringUtils.escapeSQLName(rhsCriteriaCol));
 		sb.append(";");
 		
 		return sb.toString();
@@ -125,7 +126,7 @@ public class DdlHelper {
 			if(i!=0 ) {
 				sb.append(",");
 			}
-			sb.append(columnNames.get(i));
+			sb.append(StringUtils.escapeSQLName(columnNames.get(i))); 
 		}
 		return sb.toString();
 	}
@@ -136,7 +137,7 @@ public class DdlHelper {
 			if(i!=0 ) {
 				sb.append(",");
 			}
-			sb.append(columnNames.get(i));
+			sb.append(StringUtils.escapeSQLName(columnNames.get(i)));
 			sb.append(" ");
 			sb.append(typeNames.get(i));
 		}
@@ -158,7 +159,7 @@ public class DdlHelper {
 			sb.append(") AS \n");
 			sb.append("SELECT \n");
 			sb.append("  ROW_NUMBER() OVER (ORDER BY ");
-			sb.append(columnNames.get(0));
+			sb.append(StringUtils.escapeSQLName(columnNames.get(0)));
 			sb.append(") , ");
 			sb.append(getColString(columnNames) + "\n");
 			sb.append("FROM \n");
@@ -170,7 +171,7 @@ public class DdlHelper {
 			sb.append(") AS \n");
 			sb.append("SELECT \n");
 			sb.append("  ROW_NUMBER() OVER (ORDER BY ");
-			sb.append(columnNames.get(0));
+			sb.append(StringUtils.escapeSQLName(columnNames.get(0)));
 			sb.append(") , ");
 			sb.append(getColString(columnNames) + "\n");
 			sb.append("FROM \n");
@@ -220,7 +221,7 @@ public class DdlHelper {
 		sb.append(getColumnsString(colNames));
 		sb.append(")))) AS result \n");
 		sb.append("  FROM ");
-		sb.append(srcView);
+		sb.append(StringUtils.escapeSQLName(srcView));
 		sb.append("; \n");
 		sb.append("  END;");
 
@@ -239,7 +240,7 @@ public class DdlHelper {
 			if(!sb.toString().isEmpty()) {
 				sb.append(",");
 			}
-			sb.append(colName);
+			sb.append(StringUtils.escapeSQLName(colName));
 		}
 		return sb.toString();
 	}

@@ -17,7 +17,9 @@ package org.teiid.webui.share.services;
 
 import org.teiid.webui.share.Constants;
 
-
+/**
+ * String Utilities
+ */
 public final class StringUtils {
 	
 	public static String checkValidServiceName(String serviceName) {
@@ -48,6 +50,46 @@ public final class StringUtils {
         
         return statusMsg;
 	}
+	
+    public static String escapeSQLName(String part) {
+        if (isReservedWord(part)) {
+            return Constants.SQL_ESCAPE_CHAR + part + Constants.SQL_ESCAPE_CHAR;
+        }
+        boolean escape = true;
+        char start = part.charAt(0);
+        if (start == '#' || start == '@' || isLetter(start)) {
+            escape = false;
+            for (int i = 1; !escape && i < part.length(); i++) {
+                char c = part.charAt(i);
+                escape = !isLetterOrDigit(c) && c != '_';
+            }
+        }
+        if (escape) {
+            return Constants.SQL_ESCAPE_CHAR + part + Constants.SQL_ESCAPE_CHAR; 
+        }
+        return part;
+    }
+    
+    public static boolean isReservedWord(String string) {
+    	if(Constants.RESERVED_WORDS.contains(string.toUpperCase())) {
+    		return true;
+    	}
+    	return false;
+    }
+    
+	public static boolean isLetter(char c) {
+        return isBasicLatinLetter(c) || Character.isLetter(c);
+    }
+    public static boolean isLetterOrDigit(char c) {
+        return isBasicLatinLetter(c) || isBasicLatinDigit(c) || Character.isLetterOrDigit(c);
+    }
+
+	private static boolean isBasicLatinLetter(char c) {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+    }
+    private static boolean isBasicLatinDigit(char c) {
+        return c >= '0' && c <= '9';
+    }
 	
 	/**
 	 * <p>
