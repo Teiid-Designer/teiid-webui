@@ -379,40 +379,6 @@ public class TeiidService implements ITeiidService {
    }
     
     /**
-     * Gets the 'testable' DataSources - those that are jdbc sources
-     * @throws DataVirtUiException
-     */
-//    public Map<String,String> getQueryableDataSourceMap( ) throws DataVirtUiException {
-//        Collection<Properties> dsSummaryPropsCollection = null;
-//        try {
-//        	dsSummaryPropsCollection = clientAccessor.getClient().getDataSourceSummaryPropsCollection();
-//		} catch (AdminApiClientException e) {
-//			throw new DataVirtUiException(e.getMessage());
-//		}
-//        
-//        // Create a Map of *all* Datasources and their jndi names
-//        Map<String,String> allSourcesToJndiMap = new HashMap<String,String>();
-//        for(Properties dsProps : dsSummaryPropsCollection) {
-//            String sourceName = dsProps.getProperty("name");
-//            String jndiName = dsProps.getProperty("jndi-name");
-//            if( !StringUtils.isEmpty(sourceName) && !StringUtils.isEmpty(sourceName) ) {
-//            	allSourcesToJndiMap.put(sourceName, jndiName);
-//            }
-//        }
-//        
-//        // Gets jdbc Jndi names available on the server
-//        List<String> jdbcJndiNames = JdbcSourceHelper.getInstance().getJdbcSourceNames(false);
-//        
-//        Map<String,String> resultMap = new HashMap<String,String>();
-//        for(String allDsName : allSourcesToJndiMap.keySet()) {
-//        	if(jdbcJndiNames.contains(allSourcesToJndiMap.get(allDsName))) {
-//        		resultMap.put(allDsName,allSourcesToJndiMap.get(allDsName));
-//        	}
-//        }
-//        
-//        return resultMap;
-//    }
-    /**
      * Gets the current Translators
      * @throws DataVirtUiException
      */
