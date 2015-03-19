@@ -238,12 +238,12 @@ public class QueryService implements IQueryService {
 		} catch (DataVirtUiException e1) {
 			statusMessage = Constants.TEST_CONNECTION_FAILED;
 			return statusMessage;
-		}
-
-		// Close Connection
-		try {
-			closeConnection(connection);
-		} catch (SQLException e) {
+		} finally {
+			// Close Connection
+			try {
+				closeConnection(connection);
+			} catch (SQLException e) {
+			}
 		}
 		
 		return Constants.OK;
