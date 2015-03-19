@@ -95,6 +95,9 @@ public class TranslatorHelper {
 	public static final String URL_SQLSERVER = "jdbc:sqlserver://<host>:1433;databaseName=<dbName>"; //$NON-NLS-1$
 	public static final String URL_TEIID = "jdbc:teiid:<vdbName>@mms://<host>:31000"; //$NON-NLS-1$
 	public static final String URL_JDBC = "jdbc://<host>:<port>"; //$NON-NLS-1$
+	public static final String URL_HIVE2 = "jdbc:hive2://<host>:10000/<db>";  //$NON-NLS-1$
+	public static final String URL_H2 = "jdbc:h2:file:<fileLocation>"; //$NON-NLS-1$
+    public static final String URL_SAP_HANA = "jdbc:sap://<host>:<port>"; //$NON-NLS-1$
 
 	/**
 	 * Get the best fit translator, given the driverName and list of translator names
@@ -107,6 +110,9 @@ public class TranslatorHelper {
 		if(isEmpty(driverName)) return Constants.STATUS_UNKNOWN;
 		if(isEmpty(translatorNames)) return Constants.STATUS_UNKNOWN;
 
+		// -----------------
+		// Built-In drivers
+		// -----------------
 		if(driverName.equals(TEIID_FILE_DRIVER) && translatorNames.contains(FILE)) {
 			return FILE;
 		}
@@ -139,41 +145,59 @@ public class TranslatorHelper {
 			return ACCUMULO;
 		}
 
-		if(driverName.startsWith("derby")) { //$NON-NLS-1$
+		// ------------------------------------------------------------------------------------------------------------------
+		// User-uploaded types.  This 'matching' is more of a problem, since the user can name the driver whatever they want.
+		// TODO: Consider adding user input on the driver upload form, so that the driver type can be identified later. 
+		// ------------------------------------------------------------------------------------------------------------------
+		
+	    String driverNameLC = driverName.toLowerCase();
+		if(driverNameLC.contains("derby")) { //$NON-NLS-1$
 			return DERBY;
 		}
 
-		if(driverName.startsWith("mysql")) { //$NON-NLS-1$
-			return MYSQL;
+		if(driverNameLC.contains("mysql")) { //$NON-NLS-1$
+			return MYSQL5;
 		}
 
-		if(driverName.startsWith("ojdbc")) { //$NON-NLS-1$
+		if(driverNameLC.contains("ojdbc") || driverNameLC.contains("oracle")) { //$NON-NLS-1$
 			return ORACLE;
 		}
 
-		if(driverName.startsWith("db2")) { //$NON-NLS-1$
+		if(driverNameLC.contains("db2")) { //$NON-NLS-1$
 			return DB2;
 		}
 
-		if(driverName.startsWith("postgresql")) { //$NON-NLS-1$
+		if(driverNameLC.contains("postgr")) { //$NON-NLS-1$
 			return POSTGRESQL;
 		}
 
-		if(driverName.startsWith("sqljdbc")) { //$NON-NLS-1$
+		if(driverNameLC.contains("sqljdbc") || driverNameLC.contains("sqlserver")) { //$NON-NLS-1$
 			return SQLSERVER;
 		}
 
-		if(driverName.startsWith("teiid")) { //$NON-NLS-1$
+		if(driverNameLC.contains("teiid")) { //$NON-NLS-1$
 			return TEIID;
 		}
 
-		if(driverName.startsWith("modeshape")) { //$NON-NLS-1$
+		if(driverNameLC.contains("mode")) { //$NON-NLS-1$
 			return MODESHAPE;
 		}
 		
-		if(driverName.startsWith("h2")) { //$NON-NLS-1$
+		if(driverNameLC.contains("h2")) { //$NON-NLS-1$
 			return H2;
 		}
+		
+	    if(driverNameLC.contains("ifxjdbc") || driverNameLC.contains("informix")) { //$NON-NLS-1$
+	        return INFORMIX;
+	    }
+	    
+	    if(driverNameLC.contains("iijdbc") || driverNameLC.contains("ingres")) { //$NON-NLS-1$
+	        return INGRES;
+	    }
+	    
+	    if(driverNameLC.contains("hive")) { //$NON-NLS-1$
+	        return HIVE;
+	    }
 
 		return JDBC_ANSI;
 	}
@@ -231,46 +255,60 @@ public class TranslatorHelper {
 	public static String getUrlTemplate(String driverName) {
 		if(isEmpty(driverName)) return Constants.STATUS_UNKNOWN; 
 
-		if(driverName.toLowerCase().startsWith("derby")) { //$NON-NLS-1$
+	    String driverNameLC = driverName.toLowerCase();
+		if(driverNameLC.contains("derby")) { //$NON-NLS-1$
 			return URL_DERBY;
 		}
 
-		if(driverName.toLowerCase().startsWith("mysql")) { //$NON-NLS-1$
+		if(driverNameLC.contains("mysql")) { //$NON-NLS-1$
 			return URL_MYSQL;
 		}
 
-		if(driverName.toLowerCase().startsWith("ojdbc")) { //$NON-NLS-1$
+		if(driverNameLC.contains("ojdbc") || driverNameLC.contains("oracle")) { //$NON-NLS-1$
 			return URL_ORACLETHIN;
 		}
 
-		if(driverName.toLowerCase().startsWith("db2")) { //$NON-NLS-1$
+		if(driverNameLC.contains("db2")) { //$NON-NLS-1$
 			return URL_DB2;
 		}
 
-		if(driverName.toLowerCase().startsWith("postgresql")) { //$NON-NLS-1$
+		if(driverNameLC.contains("postgr")) { //$NON-NLS-1$
 			return URL_POSTGRES;
 		}
 
-		if(driverName.toLowerCase().startsWith("sqljdbc")) { //$NON-NLS-1$
+		if(driverNameLC.contains("sqljdbc") || driverNameLC.contains("sqlserv")) { //$NON-NLS-1$
 			return URL_SQLSERVER;
 		}
 
-		if(driverName.toLowerCase().startsWith("ifxjdbc")) { //$NON-NLS-1$
+	    if(driverNameLC.contains("ifxjdbc") || driverNameLC.contains("informix")) { //$NON-NLS-1$
 			return URL_INFORMIX;
 		}
 
-		if(driverName.toLowerCase().startsWith("iijdbc")) { //$NON-NLS-1$
+	    if(driverNameLC.contains("iijdbc") || driverNameLC.contains("ingres")) { //$NON-NLS-1$
 			return URL_INGRES;
 		}
 
-		if(driverName.toLowerCase().startsWith("teiid")) { //$NON-NLS-1$
+		if(driverNameLC.contains("teiid")) { //$NON-NLS-1$
 			return URL_TEIID;
 		}
 
-		if(driverName.toLowerCase().startsWith("modeshape")) { //$NON-NLS-1$
+		if(driverNameLC.contains("mode")) { //$NON-NLS-1$
 			return URL_MODESHAPE;
 		}
+		
+	    if(driverNameLC.contains("hive")) { //$NON-NLS-1$
+	        return URL_HIVE2;
+	    }
+	    
+		if(driverNameLC.contains("h2")) { //$NON-NLS-1$
+			return URL_H2;
+		}
+		
+        if( driverName.contains("sap") || driverName.contains("hgdbc")) { 
+        	return URL_SAP_HANA;
+        }
 
 		return URL_JDBC;
 	}
+		
 }
