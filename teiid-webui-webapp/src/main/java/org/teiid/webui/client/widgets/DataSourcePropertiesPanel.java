@@ -615,10 +615,10 @@ public class DataSourcePropertiesPanel extends Composite {
             public void onReturn(Void data) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
                         i18n.format("ds-properties-panel.vdbwsource-created"), //$NON-NLS-1$
-                        i18n.format("ds-properties-panel.create-vdbwsource-success-msg")); //$NON-NLS-1$
+                        i18n.format("ds-properties-panel.create-vdbwsource-complete-msg")); //$NON-NLS-1$
 
-            	// fire event
-                fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_SUCCESS,dsName,null);
+            	// fire event - Deployment complete (but there may be a connection issue)
+                fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_COMPLETE,dsName,null);
             }
             @Override
             public void onError(Throwable error) {
@@ -650,10 +650,10 @@ public class DataSourcePropertiesPanel extends Composite {
             public void onReturn(Void data) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
                         i18n.format("ds-properties-panel.datasource-created"), //$NON-NLS-1$
-                        i18n.format("ds-properties-panel.create-success-msg")); //$NON-NLS-1$
+                        i18n.format("ds-properties-panel.create-datasource-complete-msg")); //$NON-NLS-1$
 
-            	// fire event
-                fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_SUCCESS,dsName,null);
+            	// fire event - Deployment complete (but there still may be a connection issue)
+                fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_COMPLETE,dsName,null);
             }
             @Override
             public void onError(Throwable error) {
@@ -710,7 +710,7 @@ public class DataSourcePropertiesPanel extends Composite {
             	stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_SRCS, updatedViewSrcs);
 
             	// fire event
-                fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_SUCCESS,detailsBean.getName(),null);
+                fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_COMPLETE,detailsBean.getName(),null);
             }
             @Override
             public void onError(Throwable error) {

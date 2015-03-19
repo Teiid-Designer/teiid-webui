@@ -41,6 +41,7 @@ import org.teiid.webui.client.widgets.DataSourcePropertiesPanel;
 import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.beans.DataSourcePageRow;
 import org.teiid.webui.share.beans.NotificationBean;
+import org.teiid.webui.share.exceptions.DataVirtUiException;
 import org.teiid.webui.share.services.StringUtils;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
@@ -215,7 +216,7 @@ public class ManageSourcesScreen extends Composite {
     	} else if(dEvent.getType() == UiEventType.DELETE_SOURCE_CANCEL) {
     	} else if(dEvent.getType() == UiEventType.DATA_SOURCE_DEPLOY_STARTING) {
         	updateDataSourceInfos(dEvent.getDataSourceName(), UiEventType.DATA_SOURCE_DEPLOY_STARTING);
-    	} else if(dEvent.getType() == UiEventType.DATA_SOURCE_DEPLOY_SUCCESS) {
+    	} else if(dEvent.getType() == UiEventType.DATA_SOURCE_DEPLOY_COMPLETE) {
     		doGetDataSourceInfos(dEvent.getDataSourceName());
     	} else if(dEvent.getType() == UiEventType.DATA_SOURCE_DEPLOY_FAIL) {
     		doGetDataSourceInfos(dEvent.getDataSourceName());
@@ -232,7 +233,7 @@ public class ManageSourcesScreen extends Composite {
     		if(dsRow.getName().equals(dsName)) {
     			if(eventType==UiEventType.DATA_SOURCE_DEPLOY_STARTING) {
     				dsRow.setState(DataSourcePageRow.State.DEPLOYING);
-    			} else if(eventType==UiEventType.DATA_SOURCE_DEPLOY_SUCCESS) {
+    			} else if(eventType==UiEventType.DATA_SOURCE_DEPLOY_COMPLETE) {
     				dsRow.setState(DataSourcePageRow.State.OK);
     			} else if(eventType==UiEventType.DATA_SOURCE_DEPLOY_FAIL) {
     				dsRow.setState(DataSourcePageRow.State.ERROR);
@@ -342,7 +343,19 @@ public class ManageSourcesScreen extends Composite {
     	showDSListPanelSpinner();
     	teiidService.getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
     		@Override
-    		public void onReturn(List<DataSourcePageRow> dsInfos) {
+    		public void onReturn(List<DataSourcePageRow> dsInfos) {    			
+    			// If selectedDS is null - page initialization.  If not null, this is in response to a specific source - display a 
+    			// notification message if source has an error
+    			for(DataSourcePageRow row : dsInfos) {
+    				String name = row.getName();
+    				if(!name.startsWith(Constants.SERVICE_SOURCE_VDB_PREFIX)) {
+    					if(name.equals(selectedDS) && row.getState()==DataSourcePageRow.State.ERROR) {
+    						String errorTitle = i18n.format("managesources.datasource-connection-error.title");
+    						String errorMsg = i18n.format("managesources.datasource-connection-error.msg");
+    		    			notificationService.sendErrorNotification(errorTitle, new DataVirtUiException(errorMsg));
+    					}
+    				}
+    			}
                 // Update the page
                 update(dsInfos,selectedDS);
     		}
