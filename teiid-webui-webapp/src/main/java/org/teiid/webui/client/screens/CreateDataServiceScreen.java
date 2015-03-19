@@ -15,6 +15,7 @@
  */
 package org.teiid.webui.client.screens;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +42,7 @@ import org.teiid.webui.client.utils.DdlHelper;
 import org.teiid.webui.client.utils.UiUtils;
 import org.teiid.webui.client.widgets.ViewEditorPanel;
 import org.teiid.webui.share.Constants;
+import org.teiid.webui.share.beans.DataSourcePageRow;
 import org.teiid.webui.share.beans.NotificationBean;
 import org.teiid.webui.share.beans.VdbDetailsBean;
 import org.teiid.webui.share.beans.ViewModelRequestBean;
@@ -128,6 +130,8 @@ public class CreateDataServiceScreen extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
+        doGetQueryableSources();
+        
 		statusEnterName = i18n.format("createdataservice.status-label-enter-name");
 		statusClickCreate = i18n.format("createdataservice.status-label-click-create");
 		
@@ -368,6 +372,29 @@ public class CreateDataServiceScreen extends Composite {
     		@Override
     		public void onError(Throwable error) {
                 notificationService.sendErrorNotification(i18n.format("createdataservice.getvdbnames-error"), error); //$NON-NLS-1$
+    		}
+    	});
+    }
+    
+    /**
+     * Get all available source for building the service
+     */
+    protected void doGetQueryableSources( ) {
+    	teiidService.getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
+    		@Override
+    		public void onReturn(List<DataSourcePageRow> dsInfos) {
+    			// Update the list of queryable data sources
+    			List<String> queryableDSNames = new ArrayList<String>();
+    			for(DataSourcePageRow row : dsInfos) {
+    				if(row.getState()==DataSourcePageRow.State.OK) {
+            			queryableDSNames.add(row.getName());
+    				}
+    			}
+    			viewEditorPanel.setAvailableSources(queryableDSNames);
+    		}
+    		@Override
+    		public void onError(Throwable error) {
+                notificationService.sendErrorNotification(i18n.format("createdataservice.error-getting-svcsources"), error); //$NON-NLS-1$
     		}
     	});
     }

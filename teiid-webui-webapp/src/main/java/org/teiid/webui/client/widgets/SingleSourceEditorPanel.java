@@ -38,7 +38,6 @@ import org.teiid.webui.client.services.TeiidRpcService;
 import org.teiid.webui.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.webui.client.utils.DdlHelper;
 import org.teiid.webui.share.Constants;
-import org.teiid.webui.share.beans.DataSourcePageRow;
 import org.teiid.webui.share.beans.QueryColumnBean;
 import org.teiid.webui.share.beans.QueryColumnResultSetBean;
 import org.teiid.webui.share.beans.QueryTableProcBean;
@@ -110,8 +109,6 @@ public class SingleSourceEditorPanel extends Composite {
     	horizPanel.add(tablesAndProcsTable);
     	horizPanel.add(columnsTable);
     	
-    	doGetQueryableSources();
-
     	// SelectionModel to handle Source selection 
     	dsSelectionModel = new SingleSelectionModel<String>();
     	dsNamesTable.setSelectionModel(dsSelectionModel); 
@@ -160,30 +157,17 @@ public class SingleSourceEditorPanel extends Composite {
     	tablesAndProcsTable.setTitle(i18n.format("ssource-editor-panel.tablesAndProcsTable.tooltip"));
     	columnsTable.setTitle(i18n.format("ssource-editor-panel.columnsTable.tooltip"));
     }
+
+    /** 
+     * Sets the available sources for constructing the data services
+     * @param availableSourceNames the available sources
+     */
+    public void setAvailableSources(List<String> availableSourceNames) {
+    	dsSelectionModel.clear();
+     	dsNamesTable.setData(availableSourceNames);
+    	updateStatus();
+	}
     
-    protected void doGetQueryableSources( ) {
-    	teiidService.getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
-    		@Override
-    		public void onReturn(List<DataSourcePageRow> dsInfos) {
-    			// Create list of DataSources that are accessible.  Only the Sources that have 'OK' state
-    			// have an associated VDB source and are reachable...
-            	List<String> dsList = new ArrayList<String>();
-    			for(DataSourcePageRow row : dsInfos) {
-    				if(row.getState()==DataSourcePageRow.State.OK) {
-            			dsList.add(row.getName());
-    				}
-    			}
-            	dsSelectionModel.clear();
-             	dsNamesTable.setData(dsList);
-            	updateStatus();
-    		}
-    		@Override
-    		public void onError(Throwable error) {
-                notificationService.sendErrorNotification(i18n.format("ssource-editor-panel.error-getting-svcsources"), error); //$NON-NLS-1$
-    		}
-    	});
-    }
- 
     /**
      * Get the Tables and Procs for the supplied data source
      * @param dataSourceName the name of the source

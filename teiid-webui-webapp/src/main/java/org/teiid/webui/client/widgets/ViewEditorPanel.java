@@ -65,6 +65,7 @@ public class ViewEditorPanel extends Composite {
 	private String queryResultDefaultMsg = null;
 	private String currentStatus = null;
 	private String owner;
+	private List<String> availableSourceNames = new ArrayList<String>();
 	
     @Inject
     private PlaceManager placeManager;
@@ -164,13 +165,25 @@ public class ViewEditorPanel extends Composite {
     	viewEditorPanelDescription.setText(desc);
     }
     
+    /**
+     * Sets the available dataSources for the editor
+     * @param availableSourceNames the available sources
+     */
+	public void setAvailableSources(List<String> availableSourceNames) {
+		this.availableSourceNames.clear();
+		this.availableSourceNames.addAll(availableSourceNames);
+		singleSourceEditorPanel.setAvailableSources(availableSourceNames);
+		joinEditorPanel.setAvailableSources(availableSourceNames);
+		viewSourcePanel.setAllAvailableSources(availableSourceNames);
+	}
+    
     public void setViewDdl(String ddlStr) {
     	this.viewDdlTextArea.setText(ddlStr); 
     	updateStatus();
     }
     
     public void setViewSources(List<String> viewSources) {
-    	this.viewSourcePanel.setData(viewSources,singleSourceEditorPanel.getAllSourceNames());
+    	this.viewSourcePanel.setData(viewSources,this.availableSourceNames);
     	updateStatus();
     }
     

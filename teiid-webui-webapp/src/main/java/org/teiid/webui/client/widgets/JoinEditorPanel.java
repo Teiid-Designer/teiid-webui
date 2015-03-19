@@ -40,7 +40,6 @@ import org.teiid.webui.client.services.TeiidRpcService;
 import org.teiid.webui.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.webui.client.utils.DdlHelper;
 import org.teiid.webui.share.Constants;
-import org.teiid.webui.share.beans.DataSourcePageRow;
 import org.teiid.webui.share.beans.QueryColumnBean;
 import org.teiid.webui.share.beans.QueryColumnResultSetBean;
 import org.teiid.webui.share.beans.QueryTableProcBean;
@@ -278,7 +277,6 @@ public class JoinEditorPanel extends Composite {
     			}
     		} });
     	
-        doGetQueryableSources();
     }
     
     /**
@@ -290,27 +288,14 @@ public class JoinEditorPanel extends Composite {
     	return listboxSources.getValue(index);
     }
     
-    protected void doGetQueryableSources( ) {
-    	teiidService.getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
-    		@Override
-    		public void onReturn(List<DataSourcePageRow> dsInfos) {
-    			// Create list of DataSources that are accessible.  Only the Sources that have 'OK' state
-    			// have an associated VDB source and are reachable...
-            	List<String> dsList = new ArrayList<String>();
-    			for(DataSourcePageRow row : dsInfos) {
-    				if(row.getState()==DataSourcePageRow.State.OK) {
-            			dsList.add(row.getName());
-    				}
-    			}
-    			populateSourcesListBox(dsList);
-            	updateStatus();
-    		}
-    		@Override
-    		public void onError(Throwable error) {
-                notificationService.sendErrorNotification(i18n.format("joineditor-panel.error-getting-svcsources"), error); //$NON-NLS-1$
-    		}
-    	});
-    }
+    /** 
+     * Sets the available sources for constructing the data services
+     * @param availableSourceNames the available sources
+     */
+    public void setAvailableSources(List<String> availableSourceNames) {
+		populateSourcesListBox(availableSourceNames);
+    	updateStatus();
+	}
     
     /**
      * Get the Tables and Procs for the supplied data source
