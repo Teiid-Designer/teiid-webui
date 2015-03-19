@@ -42,6 +42,7 @@ import org.teiid.webui.client.utils.DdlHelper;
 import org.teiid.webui.client.utils.UiUtils;
 import org.teiid.webui.client.widgets.ViewEditorPanel;
 import org.teiid.webui.share.Constants;
+import org.teiid.webui.share.beans.DataSourcePageRow;
 import org.teiid.webui.share.beans.NotificationBean;
 import org.teiid.webui.share.beans.VdbDetailsBean;
 import org.teiid.webui.share.beans.VdbModelBean;
@@ -131,6 +132,8 @@ public class EditDataServiceScreen extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
+        doGetQueryableSources();
+        
 		statusEnterName = i18n.format("editdataservice.status-label-enter-name");
 		statusClickSave = i18n.format("editdataservice.status-label-click-save");
 		
@@ -371,6 +374,29 @@ public class EditDataServiceScreen extends Composite {
     		@Override
     		public void onError(Throwable error) {
                 notificationService.sendErrorNotification(i18n.format("editdataservice.getvdbnames-error"), error); //$NON-NLS-1$
+    		}
+    	});
+    }
+    
+    /**
+     * Get all available source for building the service
+     */
+    protected void doGetQueryableSources( ) {
+    	teiidService.getDataSources("filter", Constants.SERVICE_SOURCE_VDB_PREFIX, new IRpcServiceInvocationHandler<List<DataSourcePageRow>>() {
+    		@Override
+    		public void onReturn(List<DataSourcePageRow> dsInfos) {
+    			// Update the list of queryable data sources
+    			List<String> queryableDSNames = new ArrayList<String>();
+    			for(DataSourcePageRow row : dsInfos) {
+    				if(row.getState()==DataSourcePageRow.State.OK) {
+            			queryableDSNames.add(row.getName());
+    				}
+    			}
+    			viewEditorPanel.setAvailableSources(queryableDSNames);
+    		}
+    		@Override
+    		public void onError(Throwable error) {
+                notificationService.sendErrorNotification(i18n.format("editdataservice.error-getting-svcsources"), error); //$NON-NLS-1$
     		}
     	});
     }
