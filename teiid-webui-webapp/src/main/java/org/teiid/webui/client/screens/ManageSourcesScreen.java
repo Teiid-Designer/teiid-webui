@@ -146,7 +146,12 @@ public class ManageSourcesScreen extends Composite {
     			if(row!=null) {
     				showDetailsPanelProperties(row,currentDataSourceList);
         			propsPanel.setExternalError(row.getErrorMessage());
-        			dsListPanel.setDeleteButtonEnabled(true);
+        	    	// Dont allow deletion of DV6.1 built-in sources
+        	    	if(Constants.BUILTIN_SOURCES.contains(row.getName())) {
+            			dsListPanel.setDeleteButtonEnabled(false);
+        	    	} else {
+            			dsListPanel.setDeleteButtonEnabled(true);
+        	    	}
         			// Keep track of previous non-placeholder selection
         			if(row.getState()!=DataSourcePageRow.State.PLACEHOLDER) {
         				previousDSSelection = row.getName();

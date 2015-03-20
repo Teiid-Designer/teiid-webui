@@ -27,6 +27,7 @@ import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.webui.client.dialogs.UiEvent;
 import org.teiid.webui.client.dialogs.UiEventType;
 import org.teiid.webui.client.messages.ClientMessages;
+import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.beans.DataSourcePageRow;
 
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -130,7 +131,13 @@ public class DataSourceListPanel extends Composite {
     
     public void setSelection(String dsName) {
     	listWidget.setSelection(dsName);
-    	deleteButton.setEnabled(true);
+    	
+    	// Dont allow deletion of DV6.1 built-in sources
+    	if(Constants.BUILTIN_SOURCES.contains(dsName)) {
+    		deleteButton.setEnabled(false);
+    	} else {
+    		deleteButton.setEnabled(true);
+    	}
     }
     
     public void setSelectionModel( final SelectionModel<DataSourcePageRow> selectionModel ) {
