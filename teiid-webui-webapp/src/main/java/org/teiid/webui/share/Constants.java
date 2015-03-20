@@ -144,6 +144,15 @@ public class Constants {
 	public static final String SORT_COLID_NAME = "name"; //$NON-NLS-1$
     public static final String SORT_COLID_MODIFIED_ON = "lastModifiedTimestamp"; //$NON-NLS-1$
     
+    public static final Set<String> BUILTIN_SOURCES = new HashSet<String>() {
+    	{
+    		add("ExampleDS");
+    		add("DashboardDS");
+    		add("ModeShapeDS");
+    		add("teiid-log-ds");
+    	}
+    };
+    
     public static final Set<String> RESERVED_WORDS = new HashSet<String>() {
         {
         	add("BIGDECIMAL");
