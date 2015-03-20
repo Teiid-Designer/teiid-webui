@@ -1,0 +1,72 @@
+
+<!--
+~ Copyright 2014 JBoss Inc
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~      http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+    xmlns:g="urn:import:com.google.gwt.user.client.ui"
+	xmlns:b="urn:import:org.gwtbootstrap3.client.ui">
+
+    <ui:style>
+      .spacingright5 {
+        margin-right: 5px;
+      }
+      .spacingleft10 {
+        margin-left: 10px;
+      }
+      .spacingtop10 {
+        margin-top: 10px;
+      }
+      .spacingtop20 {
+        margin-top: 20px;
+      }
+    </ui:style>
+
+    <g:FormPanel ui:field="form">
+        <b:Container>
+          <b:Row>
+            <b:Column size="SM_12">
+              <b:Label ui:field="msgLabel" />
+            </b:Column>
+          </b:Row>
+          <b:Row addStyleNames="{style.spacingtop10}">
+            <b:Column size="SM_6">
+              <g:HorizontalPanel>
+                <g:Label>Driver Jar:</g:Label>
+                <g:FileUpload ui:field="fileUpload" addStyleNames="{style.spacingleft10}" />
+              </g:HorizontalPanel>
+            </b:Column>
+          </b:Row>
+          <b:Row addStyleNames="{style.spacingtop10}">
+            <b:Column size="SM_6">
+              <g:HorizontalPanel>
+                <g:Label>Driver Name:</g:Label>
+                <b:TextBox ui:field="nameTextBox" addStyleNames="{style.spacingleft10}" />
+              </g:HorizontalPanel>
+            </b:Column>
+          </b:Row>
+          <b:Row addStyleNames="{style.spacingtop20}">
+            <b:Column size="SM_3">
+              <g:HorizontalPanel>
+                <b:Button ui:field="submitButton" pull="LEFT" addStyleNames="btn btn-primary {style.spacingright5}">Upload</b:Button>
+                <b:Button ui:field="cancelButton" pull="LEFT" addStyleNames="btn btn-default">Cancel</b:Button>
+              </g:HorizontalPanel>
+            </b:Column>
+          </b:Row>
+        </b:Container>
+    </g:FormPanel>
+
+</ui:UiBinder>
+
