@@ -64,6 +64,7 @@ import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
@@ -123,8 +124,8 @@ public class DataSourcePropertiesPanel extends Composite {
     @Inject @DataField("label-dsprops-title")
     protected Label dsDetailsPanelTitle;
     
-    @Inject @DataField("label-dsprops-status")
-    protected Label statusLabel;
+    @Inject @DataField("text-dsprops-status")
+    protected HTML statusText;
     
     @Inject @DataField("textbox-dsprops-name")
     protected TextBox nameTextBox;
@@ -974,8 +975,7 @@ public class DataSourcePropertiesPanel extends Composite {
      * Set the status info message
      */
     private void setInfoMessage(String statusMsg) {
-    	statusLabel.setText(statusMsg);
-    	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.INFO);
+    	statusText.setHTML(UiUtils.getStatusMessageHtml(statusMsg,UiUtils.MessageType.INFO));
     }
     
     /**
@@ -990,8 +990,7 @@ public class DataSourcePropertiesPanel extends Composite {
      * Set the status error message
      */
     private void setErrorMessage(String statusMsg) {
-    	statusLabel.setText(statusMsg);
-    	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.ERROR);
+    	statusText.setHTML(UiUtils.getStatusMessageHtml(statusMsg,UiUtils.MessageType.ERROR));
     }
     
     /**
