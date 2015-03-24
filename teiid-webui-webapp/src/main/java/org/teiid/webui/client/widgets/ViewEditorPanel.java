@@ -36,6 +36,9 @@ import org.teiid.webui.client.services.NotificationService;
 import org.teiid.webui.client.services.QueryRpcService;
 import org.teiid.webui.client.services.TeiidRpcService;
 import org.teiid.webui.client.services.rpc.IRpcServiceInvocationHandler;
+import org.teiid.webui.client.widgets.validation.EmptyNameValidator;
+import org.teiid.webui.client.widgets.validation.TextChangeListener;
+import org.teiid.webui.client.widgets.validation.ValidatingTextArea;
 import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.beans.NotificationBean;
 import org.teiid.webui.share.beans.VdbDetailsBean;
@@ -46,8 +49,6 @@ import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.KeyUpEvent;
-import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
@@ -89,7 +90,7 @@ public class ViewEditorPanel extends Composite {
     protected Button manageSourceButton;
     
     @Inject @DataField("textarea-vieweditor-viewDdl")
-    protected TextArea viewDdlTextArea;
+    protected ValidatingTextArea viewDdlTextArea;
     
     @Inject @DataField("textarea-vieweditor-testQuery")
     protected TextArea testSqlTextArea;
@@ -132,18 +133,24 @@ public class ViewEditorPanel extends Composite {
 		statusTestView = i18n.format("vieweditor-panel.status-label-test-view");
 		currentStatus = statusEnterView;
 
-    	viewDdlTextArea.addKeyUpHandler(new KeyUpHandler() {
+		viewDdlTextArea.addTextChangeListener(new TextChangeListener() {
             @Override
-            public void onKeyUp(KeyUpEvent event) {
+			public void textChanged(  ) {
             	haveSuccessfullyTested = false;
             	// Show default querypanel message
             	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
+            	queryResultsPanel.setVisible(false);
             	// Update status
             	updateStatus();
             }
         });
-    	
+		viewDdlTextArea.setVisibleLines(8);
+		viewDdlTextArea.clearValidators();
+		viewDdlTextArea.addValidator(new EmptyNameValidator());
+		viewDdlTextArea.setText(Constants.BLANK);
+
     	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
+    	queryResultsPanel.setVisible(false);
     	
     	// starting viewSources list is empty
     	List<String> sList = new ArrayList<String>();
@@ -346,12 +353,14 @@ public class ViewEditorPanel extends Composite {
                 		}
                 	}
                 	queryResultsPanel.showErrorMessage(getUserReadableModelErrorMessage(modelError));
+                	queryResultsPanel.setVisible(true);
                 } else {
                 	haveSuccessfullyTested = true;
 
                 	String testVdbJndi = Constants.JNDI_PREFIX+testVDBName;
                 	String serviceSampleSQL = testSqlTextArea.getText();
                 	queryResultsPanel.showResultsTable(testVdbJndi, serviceSampleSQL);
+                	queryResultsPanel.setVisible(true);
                 }
                 updateStatus();
             }
@@ -426,8 +435,7 @@ public class ViewEditorPanel extends Composite {
     	
 		// Check view DDL - if serviceName ok
     	if(Constants.OK.equals(currentStatus)) {
-    		String viewDdl = viewDdlTextArea.getText();
-    		if(StringUtils.isEmpty(viewDdl)) {
+    		if(!viewDdlTextArea.isValid()) {
     			currentStatus = statusEnterView;
     		}
     	}

@@ -41,12 +41,16 @@ import org.teiid.webui.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.webui.client.utils.DdlHelper;
 import org.teiid.webui.client.utils.UiUtils;
 import org.teiid.webui.client.widgets.ViewEditorPanel;
+import org.teiid.webui.client.widgets.validation.DuplicateNameValidator;
+import org.teiid.webui.client.widgets.validation.EmptyNameValidator;
+import org.teiid.webui.client.widgets.validation.ServiceNameValidator;
+import org.teiid.webui.client.widgets.validation.TextChangeListener;
+import org.teiid.webui.client.widgets.validation.ValidatingTextBox;
 import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.beans.DataSourcePageRow;
 import org.teiid.webui.share.beans.NotificationBean;
 import org.teiid.webui.share.beans.VdbDetailsBean;
 import org.teiid.webui.share.beans.ViewModelRequestBean;
-import org.teiid.webui.share.services.StringUtils;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
@@ -56,15 +60,12 @@ import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.KeyUpEvent;
-import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.IsWidget;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
-import com.google.gwt.user.client.ui.TextBox;
 
 /**
  * CreateDataServiceScreen - used for creation of Data Services
@@ -75,9 +76,7 @@ import com.google.gwt.user.client.ui.TextBox;
 @WorkbenchScreen(identifier = "CreateDataServiceScreen")
 public class CreateDataServiceScreen extends Composite {
 
-	private String statusEnterName = null;
 	private String statusClickCreate = null;
-	private Collection<String> existingVdbNames;
 	
     @Inject
     private PlaceManager placeManager;
@@ -94,7 +93,7 @@ public class CreateDataServiceScreen extends Composite {
     protected QueryRpcService queryService;
     
     @Inject @DataField("textbox-create-service-name")
-    protected TextBox serviceNameTextBox;
+    protected ValidatingTextBox serviceNameTextBox;
     
     @Inject @DataField("textarea-create-service-description")
     protected TextArea serviceDescriptionTextBox;
@@ -102,8 +101,8 @@ public class CreateDataServiceScreen extends Composite {
     @Inject @DataField("checkbox-create-service-visibility")
     protected CheckBox serviceVisibleCheckbox;
     
-    @Inject @DataField("label-create-service-status")
-    protected Label statusLabel;
+    @Inject @DataField("text-create-service-status")
+    protected HTML statusText;
  
     @Inject @DataField("view-editor-create-service")
     protected ViewEditorPanel viewEditorPanel;
@@ -131,8 +130,7 @@ public class CreateDataServiceScreen extends Composite {
     @PostConstruct
     protected void postConstruct() {
         doGetQueryableSources();
-        
-		statusEnterName = i18n.format("createdataservice.status-label-enter-name");
+                
 		statusClickCreate = i18n.format("createdataservice.status-label-click-create");
 		
 		viewEditorPanel.setTitle(i18n.format("createdataservice.vieweditor-title"));
@@ -140,6 +138,13 @@ public class CreateDataServiceScreen extends Composite {
 		viewEditorPanel.setOwner(Constants.CREATE_DATA_SERVICE_SCREEN);
 		
     	serviceVisibleCheckbox.setValue(true);
+		serviceNameTextBox.addTextChangeListener(new TextChangeListener() {
+            @Override
+			public void textChanged(  ) {
+            	viewEditorPanel.setServiceName(serviceNameTextBox.getText());
+            	updateStatus();
+            }
+        });
     	
     	// Tooltips
     	serviceNameTextBox.setTitle(i18n.format("createdataservice.serviceNameTextBox.tooltip"));
@@ -150,6 +155,9 @@ public class CreateDataServiceScreen extends Composite {
     
     @OnStartup
     public void onStartup( final PlaceRequest place ) {
+    	// Init validators
+    	doInitValidators();
+    	
     	String fromScreen = place.getParameter(Constants.FROM_SCREEN,Constants.UNKNOWN);
     	if(fromScreen!=null && fromScreen.equals(Constants.MANAGE_SOURCES_SCREEN)) {
     		restoreServiceState();
@@ -158,19 +166,8 @@ public class CreateDataServiceScreen extends Composite {
         	serviceNameTextBox.setText(Constants.BLANK);
         	
         	viewEditorPanel.setServiceName(Constants.BLANK);
+        	updateStatus();
     	}
-    	
-    	serviceNameTextBox.addKeyUpHandler(new KeyUpHandler() {
-            @Override
-            public void onKeyUp(KeyUpEvent event) {
-            	viewEditorPanel.setServiceName(serviceNameTextBox.getText());
-            	// Update status
-            	updateStatus();
-            }
-        });
-    	    	
-    	// Populates list of existing vdb names
-    	doGetAllVdbNames();
     }
     
     /**
@@ -178,59 +175,34 @@ public class CreateDataServiceScreen extends Composite {
      * of the viewEditor panel.
      */
 	private void updateStatus( ) {
-    	boolean isOK = true;
-    	
-    	// Warning for missing service name
-    	String serviceName = serviceNameTextBox.getText();
-    	if(StringUtils.isEmpty(serviceName)) {
-    		statusLabel.setText(statusEnterName);
-        	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.ERROR);
-    		isOK = false;
-    	}
-    	
-    	// Check for valid service name
-    	if(isOK) {
-    		String nameStatus = StringUtils.checkValidServiceName(serviceName);
-    		if(!nameStatus.equals(Constants.OK)) {
-    			statusLabel.setText(nameStatus);
-            	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.ERROR);
-    			isOK = false;
-    		}
-    	}
-    	
-    	// Ensure that service name is not already being used
-    	if(isOK) {
-    		String nameStatus = checkServiceNameInUse(serviceName);
-    		if(!nameStatus.equals(Constants.OK)) {
-    			statusLabel.setText(nameStatus);
-            	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.ERROR);
-    			isOK = false;
-    		}
-    	}
+        // Checks validity of service name entry
+		boolean isOK = serviceNameTextBox.isValid();
+		if(!isOK) {
+			String resolveEntriesMsg = i18n.format("createdataservice.status-resolve-form-entries");
+        	statusText.setHTML(UiUtils.getStatusMessageHtml(resolveEntriesMsg,UiUtils.MessageType.SUCCESS));
+		}
     	
 		// Check for missing view DDL - if serviceName passed
     	if(isOK) {
     		String viewEditorStatus = viewEditorPanel.getStatus();
     		if(!Constants.OK.equals(viewEditorStatus)) {
-    			statusLabel.setText(viewEditorStatus);
-            	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.ERROR);
+            	statusText.setHTML(UiUtils.getStatusMessageHtml(viewEditorStatus,UiUtils.MessageType.SUCCESS));
     			isOK = false;
     		}
     	}
     	
     	if(isOK) {
-    		statusLabel.setText(statusClickCreate);
-        	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.SUCCESS);
+        	statusText.setHTML(UiUtils.getStatusMessageHtml(statusClickCreate,UiUtils.MessageType.SUCCESS));
     		createServiceButton.setEnabled(true);
     	} else {
     		createServiceButton.setEnabled(false);
     	}
     }
 	
-    /**
-     * Handles UiEvents from viewEditorPanel
-     * @param dEvent
-     */
+	/**
+	 * Handles UiEvents from viewEditorPanel
+	 * @param dEvent
+	 */
     public void onUiEvent(@Observes UiEvent dEvent) {
     	// change received from viewEditor
     	if(dEvent.getType() == UiEventType.VIEW_EDITOR_CHANGED) {
@@ -351,23 +323,18 @@ public class CreateDataServiceScreen extends Composite {
         });           	
     }
        
-    private String checkServiceNameInUse(String serviceName) {
-    	String statusMsg = Constants.OK;
-    	
-    	if(this.existingVdbNames!=null && this.existingVdbNames.contains(serviceName)) {
-    		statusMsg = i18n.format("createdataservice.service-name-exists-msg",serviceName); //$NON-NLS-1$
-    	}
-    	return statusMsg;
-    }
-    
     /**
-     * Populate list of all current VDB names
+     * Inits the validators - one will init after the service call - it requires the existing vdbnames
      */
-    protected void doGetAllVdbNames( ) {
+    protected void doInitValidators( ) {
+    	serviceNameTextBox.clearValidators();
+		serviceNameTextBox.addValidator(new EmptyNameValidator());
+		serviceNameTextBox.addValidator(new ServiceNameValidator());
+    	
     	teiidService.getAllVdbNames(new IRpcServiceInvocationHandler<Collection<String>>() {
     		@Override
     		public void onReturn(Collection<String> vdbNames) {
-    			existingVdbNames=vdbNames;
+    			serviceNameTextBox.addValidator(new DuplicateNameValidator(vdbNames));
     		}
     		@Override
     		public void onError(Throwable error) {

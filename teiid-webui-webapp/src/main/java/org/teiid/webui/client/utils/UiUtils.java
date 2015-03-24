@@ -31,6 +31,20 @@ public class UiUtils {
         SUCCESS
     }
 	
+	public static String getStatusMessageHtml(String message, MessageType msgType) {
+		String htmlMsg = null;
+    	if(msgType.equals(MessageType.INFO)) {
+    		htmlMsg = "<h6 style=\"color:black;font-style:italic;font-weight:bold\">"+message+"</h6>";
+    	} else if(msgType.equals(MessageType.WARNING)) {
+    		htmlMsg = "<h6 style=\"color:black;font-style:italic;font-weight:bold\">"+message+"</h6>";
+    	} else if(msgType.equals(MessageType.ERROR)) {
+    		htmlMsg = "<h6 style=\"color:red;font-style:italic;font-weight:bold\">"+message+"</h6>";
+    	} else if(msgType.equals(MessageType.SUCCESS)) {
+    		htmlMsg = "<h6 style=\"color:black;font-style:italic;font-weight:bold\">"+message+"</h6>";
+    	}
+    	return htmlMsg;
+	}
+	
 	/**
 	 * Set the style type for alert labels
 	 * @param statusLabel the label

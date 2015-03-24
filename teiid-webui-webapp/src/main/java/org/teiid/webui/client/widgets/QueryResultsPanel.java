@@ -30,13 +30,13 @@ import org.teiid.webui.client.utils.UiUtils;
 
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
-import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.HTML;
 
 @Dependent
 @Templated("./QueryResultsPanel.html")
 public class QueryResultsPanel extends Composite {
 
-	private Label statusLabel = new Label();
+    protected HTML statusText = new HTML();
 	private boolean resultTableVisible = false;
 	private String defaultMessage;
 	private String fetchingDataMessage;
@@ -63,11 +63,10 @@ public class QueryResultsPanel extends Composite {
     	fetchingDataMessage = i18n.format("query-resultpanel.status-fetch-data-message");
     	noRowsMessage = i18n.format("query-resultpanel.status-norows-message");
 
-    	statusLabel.setText(defaultMessage);
-    	statusLabel.addStyleName("alert");
+    	statusText.setHTML(UiUtils.getStatusMessageHtml(defaultMessage,UiUtils.MessageType.INFO));
     	
     	// Add properties panel and Select label to deckPanel
-    	contentDeckPanel.add(statusLabel);
+    	contentDeckPanel.add(statusText);
     	contentDeckPanel.add(queryResultsTablePaged);
     	contentDeckPanel.showWidget(0);
     	resultTableVisible=false;
@@ -80,8 +79,7 @@ public class QueryResultsPanel extends Composite {
      * Set the status message
      */
     public void showStatusMessage(String statusMsg) {
-    	statusLabel.setText(statusMsg);
-    	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.ERROR);
+    	statusText.setHTML(UiUtils.getStatusMessageHtml(defaultMessage,UiUtils.MessageType.SUCCESS));
     	showMessage();
     }
     
@@ -89,8 +87,7 @@ public class QueryResultsPanel extends Composite {
      * Set the status message
      */
     public void showErrorMessage(String statusMsg) {
-    	statusLabel.setText(statusMsg);
-    	UiUtils.setMessageStyle(statusLabel, UiUtils.MessageType.ERROR);
+    	statusText.setHTML(UiUtils.getStatusMessageHtml(defaultMessage,UiUtils.MessageType.ERROR));
     	showMessage();
     }
     
