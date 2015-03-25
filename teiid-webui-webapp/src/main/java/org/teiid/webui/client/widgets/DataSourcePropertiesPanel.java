@@ -41,6 +41,11 @@ import org.teiid.webui.client.services.NotificationService;
 import org.teiid.webui.client.services.TeiidRpcService;
 import org.teiid.webui.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.webui.client.utils.UiUtils;
+import org.teiid.webui.client.widgets.validation.DuplicateNameValidator;
+import org.teiid.webui.client.widgets.validation.EmptyNameValidator;
+import org.teiid.webui.client.widgets.validation.ServiceNameValidator;
+import org.teiid.webui.client.widgets.validation.TextChangeListener;
+import org.teiid.webui.client.widgets.validation.ValidatingTextBox;
 import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.TranslatorHelper;
 import org.teiid.webui.share.beans.DataSourcePageRow;
@@ -57,8 +62,6 @@ import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.KeyUpEvent;
-import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.Button;
@@ -68,7 +71,6 @@ import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -85,7 +87,6 @@ public class DataSourcePropertiesPanel extends Composite {
     @Inject
     private ApplicationStateService stateService;
     
-	private String statusEnterName = null;
 	private String statusSelectDSType = null;
 	private String statusSelectTrans = null;
 	private String statusClickSave = null;
@@ -128,7 +129,7 @@ public class DataSourcePropertiesPanel extends Composite {
     protected HTML statusText;
     
     @Inject @DataField("textbox-dsprops-name")
-    protected TextBox nameTextBox;
+    protected ValidatingTextBox nameTextBox;
     @Inject @DataField("dtypes-button-panel")
     protected FlowPanel dTypesButtonPanel;
     
@@ -157,7 +158,6 @@ public class DataSourcePropertiesPanel extends Composite {
     	
     	dsDetailsPanelTitle.setText("[New Source]");
     	
-		statusEnterName = i18n.format("ds-properties-panel.status-enter-name");
 		statusSelectDSType = i18n.format("ds-properties-panel.status-select-dstype");
 		statusSelectTrans = i18n.format("ds-properties-panel.status-select-translator");
 		statusClickSave = i18n.format("ds-properties-panel.status-click-save");
@@ -169,12 +169,14 @@ public class DataSourcePropertiesPanel extends Composite {
     	dataSourceAdvancedPropertyEditor.clear();
     	dataSourceImportPropertyEditor.clear();
     	
-    	nameTextBox.addKeyUpHandler(new KeyUpHandler() {
+    	nameTextBox.setLabelVisible(false);
+    	nameTextBox.addTextChangeListener(new TextChangeListener() {
             @Override
-            public void onKeyUp(KeyUpEvent event) {
-                updateStatus();
+			public void textChanged(  ) {
+            	updateStatus();
             }
         });
+
         // Change Listener for Type ListBox
         translatorListBox.addChangeHandler(new ChangeHandler()
         {
@@ -787,6 +789,7 @@ public class DataSourcePropertiesPanel extends Composite {
     		String title = i18n.format("ds-properties-panel.createnew-title");
         	dsDetailsPanelTitle.setText(title);
         	
+        	setNameValidators();
         	nameTextBox.setText(Constants.BLANK);
         	originalName = Constants.BLANK;
         	
@@ -838,6 +841,7 @@ public class DataSourcePropertiesPanel extends Composite {
             	String title = dsDetailsBean.getName();
             	dsDetailsPanelTitle.setText(title);
             	
+            	setNameValidators();
             	nameTextBox.setText(dsDetailsBean.getName());
             	originalName = dsDetailsBean.getName();
             	
@@ -874,31 +878,25 @@ public class DataSourcePropertiesPanel extends Composite {
         
     }
     
+    /**
+     * Set the name validators
+     */
+    private void setNameValidators( ) {
+    	nameTextBox.clearValidators();
+    	nameTextBox.addValidator(new EmptyNameValidator());
+    	nameTextBox.addValidator(new ServiceNameValidator());
+    	nameTextBox.addValidator(new DuplicateNameValidator(this.existingDSNames));
+    }
+    
     private void updateStatus( ) {
     	String statusText = Constants.OK;
     			
-    	// Warn for missing source name
-    	String serviceName = nameTextBox.getText();
-    	if(StringUtils.isEmpty(serviceName)) {
-    		statusText = statusEnterName;
-    	}
-    	
-    	// Check for valid service name
-    	if(statusText.equals(Constants.OK)) {
-    		String nameStatus = StringUtils.checkValidServiceName(serviceName);
-    		if(!nameStatus.equals(Constants.OK)) {
-    			statusText = nameStatus;
-    		}
-    	}
-    	
-    	// Ensure that dataSource name is not already being used
-    	if(statusText.equals(Constants.OK)) {
-    		String nameStatus = checkDSNameInUse(serviceName);
-    		if(!nameStatus.equals(Constants.OK)) {
-    			statusText = nameStatus;
-    		}
-    	}
-    	
+        // Checks validity of service name entry
+		boolean isOK = nameTextBox.isValid();
+		if(!isOK) {
+        	statusText = i18n.format("ds-properties-panel.status-resolve-name-entry");
+		}
+		
     	// Warn for no type selection
     	if(statusText.equals(Constants.OK)) {
     		String dsType = getSelectedDataSourceType();
@@ -957,18 +955,9 @@ public class DataSourcePropertiesPanel extends Composite {
         		saveSourceChanges.setEnabled(false);
     		}
     	} else {
-			setErrorMessage(statusText);
+			setInfoMessage(statusText);
     		saveSourceChanges.setEnabled(false);
     	}
-    }
-    
-    private String checkDSNameInUse(String dsName) {
-    	String statusMsg = Constants.OK;
-    	
-    	if(this.existingDSNames.contains(dsName)) {
-    		statusMsg = i18n.format("ds-properties-panel.status-name-exists",dsName); //$NON-NLS-1$
-    	}
-    	return statusMsg;
     }
     
     /**
