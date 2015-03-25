@@ -40,6 +40,7 @@ import org.teiid.webui.client.services.TeiidRpcService;
 import org.teiid.webui.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.webui.client.utils.DdlHelper;
 import org.teiid.webui.client.utils.UiUtils;
+import org.teiid.webui.client.widgets.QueryResultsPanel;
 import org.teiid.webui.client.widgets.ViewEditorPanel;
 import org.teiid.webui.client.widgets.validation.DuplicateNameValidator;
 import org.teiid.webui.client.widgets.validation.EmptyNameValidator;
@@ -113,6 +114,9 @@ public class CreateDataServiceScreen extends Composite {
     @Inject @DataField("btn-create-service-cancel")
     protected Button cancelButton;
     
+    @Inject @DataField("panel-queryResults")
+    protected QueryResultsPanel queryResultsPanel;
+    
     @Override
     @WorkbenchPartTitle
     public String getTitle() {
@@ -136,7 +140,9 @@ public class CreateDataServiceScreen extends Composite {
 		viewEditorPanel.setTitle(i18n.format("createdataservice.vieweditor-title"));
 		viewEditorPanel.setDescription(i18n.format("createdataservice.vieweditor-description"));
 		viewEditorPanel.setOwner(Constants.CREATE_DATA_SERVICE_SCREEN);
-		
+		viewEditorPanel.setQueryResultsPanel(queryResultsPanel);
+    	queryResultsPanel.setVisible(false);
+    			
     	serviceVisibleCheckbox.setValue(true);
 		serviceNameTextBox.addTextChangeListener(new TextChangeListener() {
             @Override

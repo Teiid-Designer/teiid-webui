@@ -138,7 +138,6 @@
   "ds-properties-editor.value-required-message" : "A value is required for connection property: '{0}'",
   "ds-import-properties-editor.value-required-message" : "A value is required for import property: '{0}'",
   "query-resultpanel.title-default" : "Example Data",
-  "query-resultpanel.status-default-message" : "Query results...",
   "query-resultpanel.status-norows-message" : "The query returned with zero rows",
   "query-resultpanel.status-fetch-data-message" : "Fetching the query data...",
   "query-resultpanel.result-table.tooltip" : "A sample of the data that is returned by the service",

@@ -101,9 +101,6 @@ public class ViewEditorPanel extends Composite {
     @Inject @DataField("btn-vieweditor-test")
     protected Button testViewButton;
     
-    @Inject @DataField("table-vieweditor-queryResults")
-    protected QueryResultsPanel queryResultsPanel;
-    
 	private String workingDdl;
 	private List<String> workingViewSrcNames;
 	
@@ -120,6 +117,9 @@ public class ViewEditorPanel extends Composite {
     // Templates Editor
     @Inject @DataField("templates-editor")
     private TemplatesEditorPanel templatesEditorPanel;
+    
+    // The results panel for display of example data
+    private QueryResultsPanel queryResultsPanel;
 
     /**
      * Called after construction.
@@ -149,9 +149,6 @@ public class ViewEditorPanel extends Composite {
 		viewDdlTextArea.addValidator(new EmptyNameValidator());
 		viewDdlTextArea.setText(Constants.BLANK);
 
-    	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
-    	queryResultsPanel.setVisible(false);
-    	
     	// starting viewSources list is empty
     	List<String> sList = new ArrayList<String>();
     	viewSourcePanel.setData(sList,sList);
@@ -170,6 +167,14 @@ public class ViewEditorPanel extends Composite {
     
     public void setDescription(String desc) {
     	viewEditorPanelDescription.setText(desc);
+    }
+    
+    /**
+     * Specify the results panel to be used for display of results
+     * @param queryResultsPanel the results panel
+     */
+    public void setQueryResultsPanel(QueryResultsPanel queryResultsPanel) {
+    	this.queryResultsPanel = queryResultsPanel;
     }
     
     /**
