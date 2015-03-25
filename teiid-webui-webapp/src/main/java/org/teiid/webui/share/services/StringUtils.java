@@ -41,7 +41,7 @@ public final class StringUtils {
         for (int index = 1; index < length; index++) {
         	c = serviceName.charAt(index);
         	if(!Character.isLetter(c) && !Character.isDigit(c) && !(c=='_') && !(c=='-') ) {
-        		statusMsg = "The name character '"+ c + "' at position ["+(index+1)+"] is invalid";
+        		statusMsg = "The character '"+ c + "' at position ["+(index+1)+"] is invalid";
         	}
         	if(!statusMsg.equals(Constants.OK)) {
         		break;

@@ -96,6 +96,10 @@ public class ValidatingTextBox extends Composite {
         });
     }
     
+    public void setLabelVisible(boolean isVisible) {
+    	this.fgLabel.setVisible(isVisible);
+    }
+    
     /**
      * Clear the list of validators
      */
