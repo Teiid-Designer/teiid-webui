@@ -27,6 +27,7 @@ import org.teiid.webui.client.dialogs.UiEventType;
 import org.teiid.webui.client.messages.ClientMessages;
 import org.teiid.webui.client.services.TeiidRpcService;
 import org.teiid.webui.client.utils.UiUtils;
+import org.teiid.webui.share.Constants;
 
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
@@ -38,7 +39,6 @@ public class QueryResultsPanel extends Composite {
 
     protected HTML statusText = new HTML();
 	private boolean resultTableVisible = false;
-	private String defaultMessage;
 	private String fetchingDataMessage;
 	private String noRowsMessage;
 	
@@ -59,11 +59,10 @@ public class QueryResultsPanel extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
-    	defaultMessage = i18n.format("query-resultpanel.status-default-message");
     	fetchingDataMessage = i18n.format("query-resultpanel.status-fetch-data-message");
     	noRowsMessage = i18n.format("query-resultpanel.status-norows-message");
 
-    	statusText.setHTML(UiUtils.getStatusMessageHtml(defaultMessage,UiUtils.MessageType.INFO));
+    	statusText.setHTML(UiUtils.getStatusMessageHtml(Constants.BLANK,UiUtils.MessageType.INFO));
     	
     	// Add properties panel and Select label to deckPanel
     	contentDeckPanel.add(statusText);
@@ -79,7 +78,7 @@ public class QueryResultsPanel extends Composite {
      * Set the status message
      */
     public void showStatusMessage(String statusMsg) {
-    	statusText.setHTML(UiUtils.getStatusMessageHtml(defaultMessage,UiUtils.MessageType.SUCCESS));
+    	statusText.setHTML(UiUtils.getStatusMessageHtml(statusMsg,UiUtils.MessageType.SUCCESS));
     	showMessage();
     }
     
@@ -87,7 +86,7 @@ public class QueryResultsPanel extends Composite {
      * Set the status message
      */
     public void showErrorMessage(String statusMsg) {
-    	statusText.setHTML(UiUtils.getStatusMessageHtml(defaultMessage,UiUtils.MessageType.ERROR));
+    	statusText.setHTML(UiUtils.getStatusMessageHtml(statusMsg,UiUtils.MessageType.ERROR));
     	showMessage();
     }
     
