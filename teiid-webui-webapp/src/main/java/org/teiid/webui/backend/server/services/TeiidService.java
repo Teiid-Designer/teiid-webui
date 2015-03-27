@@ -703,7 +703,7 @@ public class TeiidService implements ITeiidService {
 		}    	
     }
     
-    public void createDataSourceWithVdb(DataSourceWithVdbDetailsBean bean) throws DataVirtUiException {
+    public void createDataSourceWithVdb(DataSourceWithVdbDetailsBean bean, int vdbDeployTimeoutSec) throws DataVirtUiException {
     	// First delete the server source and corresponding vdb source, if they exist
     	deleteDataSource(bean.getName());
     	
@@ -720,15 +720,16 @@ public class TeiidService implements ITeiidService {
 		}  
     	
     	// Create the Source VDB and corresponding Teiid DS
-    	createSourceVdbWithTeiidDS(bean);
+    	createSourceVdbWithTeiidDS(bean,vdbDeployTimeoutSec);
     }
     
     /**
      * Create a source VDB and its corresponding teiid source
      * @param bean the DataSource and VDB details
+     * @param vdbDeployTimeoutSec the deployment timeout in seconds
      * @throws DataVirtUiException
      */
-    public void createSourceVdbWithTeiidDS(DataSourceWithVdbDetailsBean bean) throws DataVirtUiException {
+    public void createSourceVdbWithTeiidDS(DataSourceWithVdbDetailsBean bean, int vdbDeployTimeoutSec) throws DataVirtUiException {
     	// Get all VDBS that use the sourceVDB.  They will need to be redeployed.
     	Collection<VDBMetaData> vdbsToRedeploy = getVdbsWithImport(bean.getSourceVdbName());
     	
@@ -756,7 +757,7 @@ public class TeiidService implements ITeiidService {
     			VDBMetaData cloneVdb = vdbHelper.cloneVdb(vdbMeta);
     			
     			// If the source VDB deployment was not successful, no need to wait the full timeout period for VDB deployment
-    			int deployTimeout = Constants.VDB_LOADING_TIMEOUT_SECS;
+    			int deployTimeout = vdbDeployTimeoutSec;
     			if(!Constants.SUCCESS.equals(sourceVDBStatus)) {
     				deployTimeout = 5;
     			}

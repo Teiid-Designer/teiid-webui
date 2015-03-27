@@ -166,21 +166,21 @@ public class TeiidRpcService {
         }
     }
     
-    public void createDataSourceWithVdb(DataSourceWithVdbDetailsBean dataSourceWithVdb, final IRpcServiceInvocationHandler<Void> handler) {
+    public void createDataSourceWithVdb(DataSourceWithVdbDetailsBean dataSourceWithVdb, int vdbDeployTimeoutSec, final IRpcServiceInvocationHandler<Void> handler) {
         RemoteCallback<Void> successCallback = new DelegatingRemoteCallback<Void>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
-        	remoteTeiidService.call(successCallback, errorCallback).createDataSourceWithVdb(dataSourceWithVdb);
+        	remoteTeiidService.call(successCallback, errorCallback).createDataSourceWithVdb(dataSourceWithVdb,vdbDeployTimeoutSec);
         } catch (DataVirtUiException e) {
             errorCallback.error(null, e);
         }
     }
     
-    public void createSourceVdbWithTeiidDS(DataSourceWithVdbDetailsBean dataSourceWithVdb, final IRpcServiceInvocationHandler<Void> handler) {
+    public void createSourceVdbWithTeiidDS(DataSourceWithVdbDetailsBean dataSourceWithVdb, int vdbDeployTimeoutSec, final IRpcServiceInvocationHandler<Void> handler) {
         RemoteCallback<Void> successCallback = new DelegatingRemoteCallback<Void>(handler);
         ErrorCallback<?> errorCallback = new DelegatingErrorCallback(handler);
         try {
-        	remoteTeiidService.call(successCallback, errorCallback).createSourceVdbWithTeiidDS(dataSourceWithVdb);
+        	remoteTeiidService.call(successCallback, errorCallback).createSourceVdbWithTeiidDS(dataSourceWithVdb, vdbDeployTimeoutSec);
         } catch (DataVirtUiException e) {
             errorCallback.error(null, e);
         }

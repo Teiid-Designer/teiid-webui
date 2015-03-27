@@ -29,10 +29,10 @@ import com.google.gwt.user.client.ui.Widget;
  * TextBox which validates user input
  */
 @Dependent
-public class ValidatingTextBox extends Composite {
+public class ValidatingTextBoxHoriz extends Composite {
     
-    interface ValidatingTextBoxBinder extends UiBinder<Widget, ValidatingTextBox> {}
-    private static ValidatingTextBoxBinder uiBinder = GWT.create(ValidatingTextBoxBinder.class);
+    interface ValidatingTextBoxHorizBinder extends UiBinder<Widget, ValidatingTextBoxHoriz> {}
+    private static ValidatingTextBoxHorizBinder uiBinder = GWT.create(ValidatingTextBoxHorizBinder.class);
  
     @UiField
     FormGroup formgroup;
@@ -56,7 +56,7 @@ public class ValidatingTextBox extends Composite {
     /**
      * Constructor
      */
-    public ValidatingTextBox() {
+    public ValidatingTextBoxHoriz() {
         // Init the dashboard from the UI Binder template
         initWidget(uiBinder.createAndBindUi(this));
         
@@ -141,6 +141,22 @@ public class ValidatingTextBox extends Composite {
     	for(TextChangeListener listener : listeners) {
     		listener.textChanged();
     	}
+    }
+    
+    /**
+     * Set the label text
+     * @param labelTxt
+     */
+    public void setLabel(String labelTxt) {
+    	fgLabel.setText(labelTxt);
+    }
+    
+    /**
+     * Set the label HTML
+     * @param label Html
+     */
+    public void setLabelHTML(String labelHtml) {
+    	fgLabel.setHTML(labelHtml);
     }
     
     /**

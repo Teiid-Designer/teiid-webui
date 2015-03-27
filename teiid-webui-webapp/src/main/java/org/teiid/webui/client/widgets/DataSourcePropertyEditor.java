@@ -26,21 +26,15 @@ import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
 import org.teiid.webui.client.messages.ClientMessages;
+import org.teiid.webui.client.widgets.validation.EmptyNameValidator;
+import org.teiid.webui.client.widgets.validation.TextChangeListener;
+import org.teiid.webui.client.widgets.validation.ValidatingTextBoxHoriz;
 import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.beans.DataSourcePropertyBean;
 import org.teiid.webui.share.services.StringUtils;
 
-import com.google.gwt.event.dom.client.KeyUpEvent;
-import com.google.gwt.event.dom.client.KeyUpHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.HasHorizontalAlignment;
-import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.PasswordTextBox;
-import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 /**
@@ -50,14 +44,12 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public class DataSourcePropertyEditor extends Composite {
 
 	private static final String PASSWORD_KEY = "password"; //$NON-NLS-1$
-	private static final String NAME_WIDTH = "220px";
-	private static final String VALUE_WIDTH = "600px";
 	
     protected VerticalPanel panel = new VerticalPanel();
     protected Label label = new Label();
 
     private List<DataSourcePropertyBean> propertyList = new ArrayList<DataSourcePropertyBean>();
-    private Map<String,TextBox> nameTextBoxMap = new HashMap<String,TextBox>();
+    private Map<String,Composite> nameTextBoxMap = new HashMap<String,Composite>();
     
     @Inject
     private ClientMessages i18n;
@@ -73,50 +65,15 @@ public class DataSourcePropertyEditor extends Composite {
     	this.nameTextBoxMap.clear();
     	VerticalPanel allPropsPanel = new VerticalPanel();
     	
-    	for(DataSourcePropertyBean prop : properties) {     		
-        	HorizontalPanel nameValuePanel = new HorizontalPanel();
-    		Label nameLabel = new Label();
-        	DOM.setStyleAttribute(nameLabel.getElement(), "fontWeight", "bold");
-    		nameLabel.setWidth(NAME_WIDTH);
-    		nameLabel.setHorizontalAlignment(HasHorizontalAlignment.ALIGN_RIGHT);
-    		nameLabel.setText(prop.getDisplayName()+" --");
-    		String descrip = prop.getDescription();
-    		if(!StringUtils.isEmpty(descrip)) {
-    			nameLabel.setTitle(descrip);
-    		}
-    		nameValuePanel.add(nameLabel);
+    	for(DataSourcePropertyBean prop : properties) {  
+    		// Create text box for the property
+    		ValidatingTextBoxHoriz widget = createTextBox(prop);
     		
-
-            TextBox valueTextBox = null;
-            String propName = prop.getName();
-            if( propName!=null && propName.equalsIgnoreCase(PASSWORD_KEY) ) {
-            	valueTextBox = new PasswordTextBox();
-            } else {
-            	valueTextBox = new TextBox();
-            }
-    		valueTextBox.setWidth(VALUE_WIDTH);
-    		valueTextBox.setText(prop.getValue());
-    		if(!StringUtils.isEmpty(descrip)) {
-    			valueTextBox.setTitle(descrip);
-    		}
-    		valueTextBox.addKeyUpHandler(new KeyUpHandler() {
-    			@Override
-    			public void onKeyUp(KeyUpEvent event) {
-    				updatePropertyValues();
-    			}
-    		});
-    		valueTextBox.addValueChangeHandler(new ValueChangeHandler<String>() {
-    			@Override
-    			public void onValueChange(ValueChangeEvent<String> event) {
-    				updatePropertyValues();
-    			}
-    		});
-    		nameValuePanel.add(valueTextBox);
-    		
-    		allPropsPanel.add(nameValuePanel);
+    		// Add widget to the panel
+    		allPropsPanel.add(widget);
     		
     		this.propertyList.add(prop);
-    		this.nameTextBoxMap.put(prop.getName(), valueTextBox);
+    		this.nameTextBoxMap.put(prop.getName(), widget);
     	}
     	panel.clear();
     	if(properties.size()>0) {
@@ -124,7 +81,55 @@ public class DataSourcePropertyEditor extends Composite {
     	}
     }
     
+    private boolean isPassword(DataSourcePropertyBean prop) {
+		String propName = prop.getName();
+		if( propName!=null && propName.equalsIgnoreCase(PASSWORD_KEY) ) {
+			return true;
+		}
+		return false;
+    }
     
+    /*
+     * Create a textBox for the property
+     */
+    private ValidatingTextBoxHoriz createTextBox(DataSourcePropertyBean prop) {
+		ValidatingTextBoxHoriz textBox = new ValidatingTextBoxHoriz();
+		
+		// If property is required, validate for empty name
+		if(prop.isRequired() && prop.isModifiable()) {
+			textBox.addValidator(new EmptyNameValidator());
+		}
+		
+		// Label is the display name of the property
+		textBox.setLabel(prop.getDisplayName());
+		
+		// Tooltip is the description
+		String descrip = prop.getDescription();
+		if(!StringUtils.isEmpty(descrip)) {
+			textBox.setTitle(descrip);
+		}
+		
+		// If property is a password, it is masked
+		if(isPassword(prop)) {
+			textBox.setPassword(true);
+		}
+		
+		textBox.addTextChangeListener(new TextChangeListener() {
+            @Override
+			public void textChanged(  ) {
+            	updatePropertyValues();
+            }
+        });
+		
+		textBox.setText(prop.getValue());
+		
+		return textBox;
+    }
+    
+    /**
+     * Get the property beans that are required or have a non-default value
+     * @return the list
+     */
     public List<DataSourcePropertyBean> getBeansWithRequiredOrNonDefaultValue() {
     	List<DataSourcePropertyBean> tableRows = getProperties();
     	
@@ -146,7 +151,7 @@ public class DataSourcePropertyEditor extends Composite {
     public void updatePropertyValues() {
     	for(DataSourcePropertyBean propBean : getProperties()) {
     		String propName = propBean.getName();
-    		TextBox textBox = this.nameTextBoxMap.get(propName);
+    		ValidatingTextBoxHoriz textBox = (ValidatingTextBoxHoriz)this.nameTextBoxMap.get(propName);
     		propBean.setValue(textBox.getText());
     	}
         propertyChangeEvent.fire(new DataSourcePropertyBean());
