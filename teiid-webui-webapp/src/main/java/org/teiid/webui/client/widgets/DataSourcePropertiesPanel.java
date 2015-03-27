@@ -27,6 +27,7 @@ import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.ListBox;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
@@ -43,9 +44,10 @@ import org.teiid.webui.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.webui.client.utils.UiUtils;
 import org.teiid.webui.client.widgets.validation.DuplicateNameValidator;
 import org.teiid.webui.client.widgets.validation.EmptyNameValidator;
+import org.teiid.webui.client.widgets.validation.NamedListBox;
 import org.teiid.webui.client.widgets.validation.ServiceNameValidator;
 import org.teiid.webui.client.widgets.validation.TextChangeListener;
-import org.teiid.webui.client.widgets.validation.ValidatingTextBox;
+import org.teiid.webui.client.widgets.validation.ValidatingTextBoxHoriz;
 import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.TranslatorHelper;
 import org.teiid.webui.share.beans.DataSourcePageRow;
@@ -70,7 +72,6 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ListBox;
 import com.google.gwt.user.client.ui.ToggleButton;
 import com.google.gwt.user.client.ui.Widget;
 
@@ -87,9 +88,6 @@ public class DataSourcePropertiesPanel extends Composite {
     @Inject
     private ApplicationStateService stateService;
     
-	private String statusSelectDSType = null;
-	private String statusSelectTrans = null;
-	private String statusClickSave = null;
 	private String statusEnterProps = null;
 	private String externalError = null;
 	
@@ -129,18 +127,25 @@ public class DataSourcePropertiesPanel extends Composite {
     protected HTML statusText;
     
     @Inject @DataField("textbox-dsprops-name")
-    protected ValidatingTextBox nameTextBox;
+    protected ValidatingTextBoxHoriz nameTextBox;
     @Inject @DataField("dtypes-button-panel")
     protected FlowPanel dTypesButtonPanel;
     
     @Inject @DataField("listbox-dsprops-translator")
-    protected ListBox translatorListBox;
+    protected NamedListBox namedTranslatorListBox;
+    
+    private ListBox translatorListBox;
+    
+    @Inject @DataField("label-coreprops-title")
+    protected Label corePropsTitle;
+    
     @Inject @DataField("editor-dsprops-core-properties")
     protected DataSourcePropertyEditor dataSourceCorePropertyEditor;
-    @Inject @DataField("editor-dsprops-adv-properties")
-    protected DataSourcePropertyEditor dataSourceAdvancedPropertyEditor;
-    @Inject @DataField("editor-dsprops-import-properties")
-    protected TranslatorImportPropertyEditor dataSourceImportPropertyEditor;
+    
+    @Inject @DataField("advanced-props-accordion")
+    protected AdvancedPropsAccordion advPropsAccordion;
+    @Inject @DataField("import-props-accordion")
+    protected ImportPropsAccordion importPropsAccordion;
     
     @Inject @DataField("btn-dsprops-save")
     protected Button saveSourceChanges;
@@ -157,19 +162,21 @@ public class DataSourcePropertiesPanel extends Composite {
     	AppResource.INSTANCE.css().customToggleStyle().ensureInjected();
     	
     	dsDetailsPanelTitle.setText("[New Source]");
+    	corePropsTitle.setText("Connection Properties");
     	
-		statusSelectDSType = i18n.format("ds-properties-panel.status-select-dstype");
-		statusSelectTrans = i18n.format("ds-properties-panel.status-select-translator");
-		statusClickSave = i18n.format("ds-properties-panel.status-click-save");
 		statusEnterProps = i18n.format("ds-properties-panel.status-enter-props");
 		
     	doPopulateSourceTypesPanel(null);
     	
     	dataSourceCorePropertyEditor.clear();
-    	dataSourceAdvancedPropertyEditor.clear();
-    	dataSourceImportPropertyEditor.clear();
     	
-    	nameTextBox.setLabelVisible(false);
+    	advPropsAccordion.setText("Advanced Properties");
+    	advPropsAccordion.clearProperties();
+    	importPropsAccordion.setText("Import Properties");
+    	importPropsAccordion.clearProperties();
+    	
+    	nameTextBox.setLabelHTML("<div><h3>Source Name</h3></div>");
+    	nameTextBox.setLabelVisible(true);
     	nameTextBox.addTextChangeListener(new TextChangeListener() {
             @Override
 			public void textChanged(  ) {
@@ -177,6 +184,9 @@ public class DataSourcePropertiesPanel extends Composite {
             }
         });
 
+    	namedTranslatorListBox.setLabelHTML("<div><h3>Translator</h3></div>");
+    	namedTranslatorListBox.setLabelVisible(true);
+    	translatorListBox = namedTranslatorListBox.getListBox();
         // Change Listener for Type ListBox
         translatorListBox.addChangeHandler(new ChangeHandler()
         {
@@ -193,7 +203,7 @@ public class DataSourcePropertiesPanel extends Composite {
         cancelSourceChanges.setTitle(i18n.format("ds-properties-panel.cancelSourceChanges.tooltip"));
         saveSourceChanges.setTitle(i18n.format("ds-properties-panel.saveSourceChanges.tooltip"));
         nameTextBox.setTitle(i18n.format("ds-properties-panel.nameTextBox.tooltip"));
-        translatorListBox.setTitle(i18n.format("ds-properties-panel.translatorListBox.tooltip"));
+        namedTranslatorListBox.setTitle(i18n.format("ds-properties-panel.translatorListBox.tooltip"));
     }
     
     /**
@@ -237,7 +247,7 @@ public class DataSourcePropertiesPanel extends Composite {
         // Only the translator changed.  No need to muck with DS - just redeploy VDB and its source
     	} else if(!hasNameChange() && !hasPropertyChanges() && !hasDataSourceTypeChange() && hasTranslatorChange()) {
             DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
-            doCreateSourceVdbWithTeiidDS(sourceBean);
+            doCreateSourceVdbWithTeiidDS(sourceBean,Constants.VDB_LOADING_TIMEOUT_SECS);
         // No name change
         } else if(!hasNameChange()) {
         	showConfirmSourceRedeployDialog();
@@ -332,7 +342,7 @@ public class DataSourcePropertiesPanel extends Composite {
     
     private void onRedeployConfirmed() {
         DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
-    	doCreateDataSource(sourceBean);
+    	doCreateDataSource(sourceBean,Constants.VDB_LOADING_TIMEOUT_SECS);
     }
     
     private void onChangeTypeConfirmed() {
@@ -359,13 +369,13 @@ public class DataSourcePropertiesPanel extends Composite {
     	// Set the Source properties
     	List<DataSourcePropertyBean> props = new ArrayList<DataSourcePropertyBean>();
     	List<DataSourcePropertyBean> coreProps = dataSourceCorePropertyEditor.getBeansWithRequiredOrNonDefaultValue();
-    	List<DataSourcePropertyBean> advancedProps = dataSourceAdvancedPropertyEditor.getBeansWithRequiredOrNonDefaultValue();
+    	List<DataSourcePropertyBean> advancedProps = advPropsAccordion.getBeansWithRequiredOrNonDefaultValue();
     	props.addAll(coreProps);
     	props.addAll(advancedProps);
     	resultBean.setProperties(props);
 
     	// Set the translator import properties
-    	List<TranslatorImportPropertyBean> importProps = dataSourceImportPropertyEditor.getBeansWithRequiredOrNonDefaultValue();
+    	List<TranslatorImportPropertyBean> importProps = importPropsAccordion.getBeansWithRequiredOrNonDefaultValue();
     	resultBean.setImportProperties(importProps);
     	
     	return resultBean;
@@ -472,6 +482,7 @@ public class DataSourcePropertiesPanel extends Composite {
     			}
     		}
     	}
+    	setWidgetsVisibility(this.isNewSource);
     }
     
     private void deselectDSTypeButtons() {
@@ -579,8 +590,8 @@ public class DataSourcePropertiesPanel extends Composite {
     protected void doPopulatePropertiesTable(String selectedType) {
         if(selectedType.equals(Constants.NO_TYPE_SELECTION)) {
         	dataSourceCorePropertyEditor.clear();
-        	dataSourceAdvancedPropertyEditor.clear();
-        	dataSourceImportPropertyEditor.clear();
+        	advPropsAccordion.clearProperties();
+        	importPropsAccordion.clearProperties();
         	return;
         }
 
@@ -604,7 +615,7 @@ public class DataSourcePropertiesPanel extends Composite {
      * Create a VDB and corresponding teiid source.  Used when there are no changes to the underlying source.
      * @param dsDetailsBean the data source details
      */
-    private void doCreateSourceVdbWithTeiidDS(final DataSourceWithVdbDetailsBean detailsBean) {
+    private void doCreateSourceVdbWithTeiidDS(final DataSourceWithVdbDetailsBean detailsBean, final int vdbDeployTimeoutSec) {
     	final String dsName = detailsBean.getName();
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("ds-properties-panel.creating-vdbwsource-title"), //$NON-NLS-1$
@@ -613,7 +624,7 @@ public class DataSourcePropertiesPanel extends Composite {
         // fire event
         fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_STARTING,dsName,null);
 
-        teiidService.createSourceVdbWithTeiidDS(detailsBean, new IRpcServiceInvocationHandler<Void>() {
+        teiidService.createSourceVdbWithTeiidDS(detailsBean, vdbDeployTimeoutSec, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
@@ -639,7 +650,7 @@ public class DataSourcePropertiesPanel extends Composite {
      * Creates a DataSource
      * @param dsDetailsBean the data source details
      */
-    private void doCreateDataSource(final DataSourceWithVdbDetailsBean detailsBean) {
+    private void doCreateDataSource(final DataSourceWithVdbDetailsBean detailsBean, final int vdbDeployTimeoutSec) {
     	final String dsName = detailsBean.getName();
         final NotificationBean notificationBean = notificationService.startProgressNotification(
                 i18n.format("ds-properties-panel.creating-datasource-title"), //$NON-NLS-1$
@@ -648,7 +659,7 @@ public class DataSourcePropertiesPanel extends Composite {
         // fire event
         fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_STARTING,dsName,null);
 
-        teiidService.createDataSourceWithVdb(detailsBean, new IRpcServiceInvocationHandler<Void>() {
+        teiidService.createDataSourceWithVdb(detailsBean, vdbDeployTimeoutSec, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
@@ -740,19 +751,19 @@ public class DataSourcePropertiesPanel extends Composite {
      * Populate the advanced properties table
      */
     private void populateAdvancedPropertiesTable() {
-    	dataSourceAdvancedPropertyEditor.clear();
+    	advPropsAccordion.clearProperties();
 
     	List<DataSourcePropertyBean> advPropList = getPropList(this.currentPropList, false, true);
-    	dataSourceAdvancedPropertyEditor.setProperties(advPropList);
+    	advPropsAccordion.setProperties(advPropList);
     }
     
     /*
      * Populate the import properties table with current prop list
      */
     private void populateImportPropertiesTableWithCurrent( ) {
-    	dataSourceImportPropertyEditor.clear();
+    	importPropsAccordion.clearProperties();
 
-    	dataSourceImportPropertyEditor.setProperties(this.currentImportPropList);
+    	importPropsAccordion.setProperties(this.currentImportPropList);
     }
     
     /*
@@ -812,6 +823,40 @@ public class DataSourcePropertiesPanel extends Composite {
     	} else {
     		isNewSource = false;
     		doGetDataSourceDetails(dsRow.getName());
+    	}
+    }
+    
+    private void setWidgetsVisibility(boolean isPlaceHolder) {
+    	// placeholder (new source) - display widgets as selections are made
+    	if(isPlaceHolder) {
+    		// If no type is selected, hide components
+    		boolean typeSelected = getSelectedDataSourceType()!=null;
+    		statusText.setVisible(typeSelected);
+    		nameTextBox.setVisible(typeSelected);
+    		namedTranslatorListBox.setVisible(typeSelected);
+
+    		boolean translatorSelected = !getSelectedTranslator().equals(Constants.NO_TRANSLATOR_SELECTION);
+			corePropsTitle.setVisible(translatorSelected);
+    	    dataSourceCorePropertyEditor.setVisible(translatorSelected);
+    	    saveSourceChanges.setVisible(translatorSelected);
+    		
+    		if(!translatorSelected) {
+        	    advPropsAccordion.setVisible(false);
+        	    importPropsAccordion.setVisible(false);
+    		} else {
+        	    advPropsAccordion.setVisible(advPropsAccordion.hasProperties());
+        	    importPropsAccordion.setVisible(importPropsAccordion.hasProperties());
+    		}
+    	// Not a placeholder - show all widgets
+    	} else {
+    		statusText.setVisible(true);
+    		nameTextBox.setVisible(true);
+    		namedTranslatorListBox.setVisible(true);
+			corePropsTitle.setVisible(true);
+    	    dataSourceCorePropertyEditor.setVisible(true);
+    	    advPropsAccordion.setVisible(advPropsAccordion.hasProperties());
+    	    importPropsAccordion.setVisible(importPropsAccordion.hasProperties());
+    	    saveSourceChanges.setVisible(true);
     	}
     }
     
@@ -889,38 +934,48 @@ public class DataSourcePropertiesPanel extends Composite {
     }
     
     private void updateStatus( ) {
-    	String statusText = Constants.OK;
+    	setWidgetsVisibility(this.isNewSource);
+    	
+    	String status = Constants.OK;
     			
-        // Checks validity of service name entry
-		boolean isOK = nameTextBox.isValid();
-		if(!isOK) {
-        	statusText = i18n.format("ds-properties-panel.status-resolve-name-entry");
-		}
-		
     	// Warn for no type selection
-    	if(statusText.equals(Constants.OK)) {
-    		String dsType = getSelectedDataSourceType();
-    		if(StringUtils.isEmpty(dsType)) {
-    			statusText = statusSelectDSType;
-    		}
+    	String dsType = getSelectedDataSourceType();
+    	if(StringUtils.isEmpty(dsType)) {
+    		status = statusEnterProps;
     	}
     	
+        // Checks validity of service name entry
+    	if(status.equals(Constants.OK)) {
+    		boolean isOK = nameTextBox.isValid();
+    		if(!isOK) {
+    			status = statusEnterProps;
+    		}
+    	}
+		    	
 		// Warn for translator not selected
-    	if(statusText.equals(Constants.OK)) {
+    	if(status.equals(Constants.OK)) {
         	String translator = getSelectedTranslator();
     		if(translator!=null && translator.equals(Constants.NO_TRANSLATOR_SELECTION)) {
-    			statusText = statusSelectTrans;
+    			status = statusEnterProps;
     		}
     	}
     	
 		// Get properties message
-    	if(statusText.equals(Constants.OK)) {
-        	statusText = getPropertyStatus();
+    	if(status.equals(Constants.OK)) {
+    		status = getPropertyStatus();
+        	// Replace with generic message if not ok
+        	if(!status.equals(Constants.OK)) {
+        		status = statusEnterProps;
+        	}
     	}
     	
 		// Get import properties message
-    	if(statusText.equals(Constants.OK)) {
-        	statusText = getImportPropertyStatus();
+    	if(status.equals(Constants.OK)) {
+    		status = getImportPropertyStatus();
+        	// Replace with generic message if not ok
+        	if(!status.equals(Constants.OK)) {
+        		status = statusEnterProps;
+        	}
     	}
     	
 		boolean hasNameChange = hasNameChange();
@@ -939,23 +994,20 @@ public class DataSourcePropertiesPanel extends Composite {
 		}
 		
     	// Determine if any properties were changed
-    	if(statusText.equals(Constants.OK)) {
+    	if(status.equals(Constants.OK)) {
+    		statusText.setVisible(false);
     		if(hasNameChange || hasTypeChange || hasTranslatorChange || hasPropChanges || hasImportPropChanges) {
-    			setInfoMessage(statusClickSave);
         		saveSourceChanges.setEnabled(true);
         		cancelSourceChanges.setEnabled(true);
     		} else {
     			// External error was set - show it
     			if(!StringUtils.isEmpty(this.externalError)) {
     				setErrorMessage(this.externalError);
-    			// Show standard 'enter props' message
-    			} else {
-        			setInfoMessage(statusEnterProps);
     			}
         		saveSourceChanges.setEnabled(false);
     		}
     	} else {
-			setInfoMessage(statusText);
+    		if(!this.isNewSource) setInfoMessage(status);
     		saveSourceChanges.setEnabled(false);
     	}
     }
@@ -964,6 +1016,7 @@ public class DataSourcePropertiesPanel extends Composite {
      * Set the status info message
      */
     private void setInfoMessage(String statusMsg) {
+		statusText.setVisible(true);
     	statusText.setHTML(UiUtils.getStatusMessageHtml(statusMsg,UiUtils.MessageType.INFO));
     }
     
@@ -979,6 +1032,7 @@ public class DataSourcePropertiesPanel extends Composite {
      * Set the status error message
      */
     private void setErrorMessage(String statusMsg) {
+		statusText.setVisible(true);
     	statusText.setHTML(UiUtils.getStatusMessageHtml(statusMsg,UiUtils.MessageType.ERROR));
     }
     
@@ -1012,7 +1066,7 @@ public class DataSourcePropertiesPanel extends Composite {
      */
     private boolean hasPropertyChanges() {
     	boolean coreTableHasChanges = this.dataSourceCorePropertyEditor.anyPropertyHasChanged();
-    	boolean advTableHasChanges = this.dataSourceAdvancedPropertyEditor.anyPropertyHasChanged();
+    	boolean advTableHasChanges = this.advPropsAccordion.anyPropertyHasChanged();
     	
     	return (coreTableHasChanges || advTableHasChanges) ? true : false;
     }
@@ -1023,7 +1077,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	// ------------------
     	String propStatus = this.dataSourceCorePropertyEditor.getStatus();
     	if(propStatus.equalsIgnoreCase(Constants.OK)) {
-    		propStatus = this.dataSourceAdvancedPropertyEditor.getStatus();
+    		propStatus = this.advPropsAccordion.getStatus();
     	}
 
     	return propStatus;
@@ -1034,16 +1088,16 @@ public class DataSourcePropertiesPanel extends Composite {
      * @return import property changed status
      */
     private boolean hasImportPropertyChanges() {
-    	return this.dataSourceImportPropertyEditor.anyPropertyHasChanged();
+    	return this.importPropsAccordion.anyPropertyHasChanged();
     }
     
     private String getImportPropertyStatus() {
     	// ------------------
     	// Set status message
     	// ------------------
-    	String propStatus = this.dataSourceImportPropertyEditor.getStatus();
+    	String propStatus = this.importPropsAccordion.getStatus();
     	if(propStatus.equalsIgnoreCase(Constants.OK)) {
-    		propStatus = this.dataSourceImportPropertyEditor.getStatus();
+    		propStatus = this.importPropsAccordion.getStatus();
     	}
 
     	return propStatus;

@@ -60,9 +60,9 @@ public interface ITeiidService {
 
     public List<TranslatorImportPropertyBean> getTranslatorImportProperties(String translatorName) throws DataVirtUiException;
     	
-    public void createDataSourceWithVdb(DataSourceWithVdbDetailsBean dataSourceWithVdb) throws DataVirtUiException;
+    public void createDataSourceWithVdb(DataSourceWithVdbDetailsBean dataSourceWithVdb, int vdbDeployTimeoutSec) throws DataVirtUiException;
     
-    public void createSourceVdbWithTeiidDS(DataSourceWithVdbDetailsBean bean) throws DataVirtUiException;
+    public void createSourceVdbWithTeiidDS(DataSourceWithVdbDetailsBean bean,int vdbDeployTimeoutSec) throws DataVirtUiException;
 
     public List<VdbDetailsBean> deleteDataSourceAndVdb(String dsName, String vdbName) throws DataVirtUiException;
 
