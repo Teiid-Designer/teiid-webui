@@ -88,6 +88,9 @@ public class DataServicesLibraryScreen extends Composite {
     
     @Inject @DataField("btn-create-service")
     protected Button createServiceButton;
+
+    @Inject @DataField("btn-manage-sources")
+    protected Button manageSourcesButton;
         
     @Inject @DataField("grid-services")
     protected VerticalPanel servicesPanel;
@@ -112,6 +115,7 @@ public class DataServicesLibraryScreen extends Composite {
 
     	// Tooltips
     	createServiceButton.setTitle(i18n.format("dslibrary.createServiceButton.tooltip"));
+    	manageSourcesButton.setTitle(i18n.format("dslibrary.manageSourcesButton.tooltip"));
     }
     
     @OnStartup
@@ -311,10 +315,29 @@ public class DataServicesLibraryScreen extends Composite {
     }
     
     /**
+     * Event handler that fires when the user clicks the Manage Sources button.
+     * @param event
+     */
+    @EventHandler("btn-manage-sources")
+    public void onManageSourcesButtonClick(ClickEvent event) {
+    	doManageSources();
+    }
+    
+    /**
      * Create Service - transitions to the Create Services page
      */
     protected void doCreateService() {
     	placeManager.goTo(Constants.CREATE_DATA_SERVICE_SCREEN);
+    }
+    
+    /**
+     * Create Service - transitions to the Manage Sources page
+     */
+    protected void doManageSources() {
+		// transition to ManageSourcesScreen
+		Map<String,String> parameters = new HashMap<String,String>();
+		parameters.put(Constants.FROM_SCREEN, Constants.DATA_SERVICES_LIBRARY_SCREEN);
+    	placeManager.goTo(new DefaultPlaceRequest(Constants.MANAGE_SOURCES_SCREEN,parameters));
     }
     
 }

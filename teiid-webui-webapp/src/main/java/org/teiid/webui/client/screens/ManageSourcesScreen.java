@@ -436,8 +436,8 @@ public class ManageSourcesScreen extends Composite {
     public void onGoBackAnchorClick(ClickEvent event) {
     	Map<String,String> parameters = new HashMap<String,String>();
     	parameters.put(Constants.FROM_SCREEN, Constants.MANAGE_SOURCES_SCREEN);
-    	if(this.requestingScreen!=null && this.requestingScreen.equals(Constants.EDIT_DATA_SERVICE_SCREEN)) {
-        	placeManager.goTo(new DefaultPlaceRequest(Constants.EDIT_DATA_SERVICE_SCREEN,parameters));
+    	if(!StringUtils.isEmpty(this.requestingScreen)) {
+        	placeManager.goTo(new DefaultPlaceRequest(this.requestingScreen,parameters));
     	} else {
         	placeManager.goTo(new DefaultPlaceRequest(Constants.CREATE_DATA_SERVICE_SCREEN,parameters));
     	}
