@@ -15,6 +15,9 @@
  */
 package org.teiid.webui.client.screens;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -29,9 +32,9 @@ import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceManager;
+import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.user.client.ui.Anchor;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Image;
@@ -55,9 +58,9 @@ public class DataServicesEmptyLibraryScreen extends Composite {
     @Inject @DataField("btn-create-service")
     protected Button createServiceButton;
     
-    @Inject @DataField("anchor-create-service")
-    protected Anchor createServiceAnchor;
-
+    @Inject @DataField("btn-manage-sources")
+    protected Button manageSourcesButton;
+    
     @Inject @DataField("image-empty-library")
     public Image emptyLibImage;
     
@@ -81,7 +84,7 @@ public class DataServicesEmptyLibraryScreen extends Composite {
     	
     	// Tooltips
     	createServiceButton.setTitle(i18n.format("dslibrary-empty.createServiceButton.tooltip"));
-    	createServiceAnchor.setTitle(i18n.format("dslibrary-empty.createServiceAnchor.tooltip"));
+    	manageSourcesButton.setTitle(i18n.format("dslibrary-empty.manageSourcesButton.tooltip"));
     }
     
     /**
@@ -94,19 +97,29 @@ public class DataServicesEmptyLibraryScreen extends Composite {
     }
     
     /**
-     * Event handler that fires when the user clicks the CreateService anchor.
+     * Event handler that fires when the user clicks the ManageSources button.
      * @param event
      */
-    @EventHandler("anchor-create-service")
-    public void onCreateServiceAnchorClick(ClickEvent event) {
-    	doCreateService();
+    @EventHandler("btn-manage-sources")
+    public void onManageSourcesButtonClick(ClickEvent event) {
+    	doManageSources();
     }
-        
+    
     /**
      * Create Service - transitions to the Create Services page
      */
     protected void doCreateService() {
     	placeManager.goTo(Constants.CREATE_DATA_SERVICE_SCREEN);
+    }
+    
+    /**
+     * Manage Sources - transitions to the Manage Sources page
+     */
+    protected void doManageSources() {
+		// transition to ManageSourcesScreen
+		Map<String,String> parameters = new HashMap<String,String>();
+		parameters.put(Constants.FROM_SCREEN, Constants.DATA_SERVICES_EMPTY_LIBRARY_SCREEN);
+    	placeManager.goTo(new DefaultPlaceRequest(Constants.MANAGE_SOURCES_SCREEN,parameters));
     }
     
 }
