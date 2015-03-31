@@ -70,6 +70,10 @@ public class AdvancedPropsAccordion extends Composite {
     	propertyEditor.setProperties(properties);
     }
     
+    public List<DataSourcePropertyBean> getProperties() {
+    	return propertyEditor.getProperties();
+    }
+    
     public void setText(String txt) {
     	accordionAnchor.setText(txt);
     }

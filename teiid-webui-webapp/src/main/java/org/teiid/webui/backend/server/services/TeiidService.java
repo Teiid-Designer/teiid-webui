@@ -525,11 +525,10 @@ public class TeiidService implements ITeiidService {
     		return Collections.emptyList();
     	}
     	
-		// Get the Managed connection factory class for rars
-		String rarConnFactoryValue = null;
-		if(isResourceAdapter(typeName)) {
-			rarConnFactoryValue = getManagedConnectionFactoryClassDefault(propDefnList);
-		}
+    	boolean isGoogleSource = isGoogleSource(propDefnList);
+    	
+		// Get the Managed connection factory class for Resource Adapters
+		String rarConnFactoryValue = getManagedConnectionFactoryClassDefault(propDefnList);
     	
 		for(PropertyDefinition propDefn: propDefnList) {
 			DataSourcePropertyBean propBean = new DataSourcePropertyBean();
@@ -580,6 +579,16 @@ public class TeiidService implements ITeiidService {
 				propBean.setOriginalValue(rarConnFactoryValue);
 				propBean.setRequired(true);
 			}
+			
+			// Resets google 'isRequired' status on some properties.  This is because teiid marks them all as 
+			// 'required'.  Really, some of them are 'conditionally required'
+			if(isGoogleSource) {
+				if(  name.equals(TranslatorHelper.GOOGLE_SOURCE_PROPERTY_KEY_PASSWORD) || 
+					 name.equals(TranslatorHelper.GOOGLE_SOURCE_PROPERTY_KEY_USERNAME) ||
+					 name.equals(TranslatorHelper.GOOGLE_SOURCE_PROPERTY_KEY_REFRESH_TOKEN)) {
+					propBean.setRequired(false);
+				}
+			}
 
 			// ------------------------
 			// Add PropertyObj to List
@@ -591,24 +600,24 @@ public class TeiidService implements ITeiidService {
     } 
     
     /**
-     * Determine if this is a resource adapter that is deployed with Teiid
-     * @param driverName the name of the driver
-     * @return 'true' if the driver is a rar driver, 'false' if not.
+     * Determine if a source is Google type
+     * @param propertyItems the list of properties for the source
+     * @return 'true' if google type, 'false' if not
      */
-    private boolean isResourceAdapter(String driverName) {
-    	boolean isRarDriver = false;
-    	if(!StringUtils.isEmpty(driverName)) {
-    		if( driverName.equals(TranslatorHelper.TEIID_FILE_DRIVER) || driverName.equals(TranslatorHelper.TEIID_GOOGLE_DRIVER)
-    				|| driverName.equals(TranslatorHelper.TEIID_INFINISPAN_DRIVER) || driverName.equals(TranslatorHelper.TEIID_LDAP_DRIVER)
-    				|| driverName.equals(TranslatorHelper.TEIID_MONGODB_DRIVER) || driverName.equals(TranslatorHelper.TEIID_SALESORCE_DRIVER)
-    				|| driverName.equals(TranslatorHelper.TEIID_WEBSERVICE_DRIVER) || driverName.equals(TranslatorHelper.TEIID_ACCUMULO_DRIVER)) {
-    			isRarDriver = true;
+    private static boolean isGoogleSource(Collection<? extends PropertyDefinition> propDefns) {
+    	boolean isGoogle = false;
+    	for(PropertyDefinition pDefn : propDefns) {
+    		if(pDefn.getName().equalsIgnoreCase(CONN_FACTORY_CLASS_KEY)) {
+    			String defaultClassName = (String)pDefn.getDefaultValue();
+    			if(defaultClassName!=null && defaultClassName.equalsIgnoreCase(TranslatorHelper.TEIID_GOOGLE_CLASS)) {
+    				isGoogle=true;
+    			}
+    			break;
     		}
     	}
-
-    	return isRarDriver;
+    	return isGoogle;
     }
-        
+    
     /*
      * Get the default value for the Managed ConnectionFactory class
      * @param propDefns the collection of property definitions
