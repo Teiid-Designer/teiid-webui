@@ -117,6 +117,7 @@
   "ds-properties-panel.create-vdbwsource-complete-msg" : "The create attempt finished.",
   "ds-properties-panel.create-vdbwsource-error" : "Error Creating Data Source",
   "ds-properties-panel.details-fetch-error" : "Error Retrieving Source details",
+  "ds-properties-panel.status-select-type" : "Select a type for the source",
   "ds-properties-panel.status-enter-props" : "Please enter all of the required form inputs",
   "ds-properties-panel.confirm-rename-dialog-title" : "Confirm DataSource Rename",
   "ds-properties-panel.confirm-rename-dialog-message" : "Renaming a source may cause problems if other users are referencing the source.  Continue?",
@@ -130,6 +131,7 @@
   "ds-properties-panel.cancelSourceChanges.tooltip" : "Cancel Data Source changes",
   "ds-properties-panel.nameTextBox.tooltip" : "The name of the Data Source",
   "ds-properties-panel.translatorListBox.tooltip" : "The translator for this Data Source",
+  "ds-properties-panel.timeoutTextBox.tooltip" : "The time (seconds) to wait for a Data Source to deploy",
   "ds-properties-panel.addTypeButton.tooltip" : "Upload a new Data Source type",
   "ds-properties-panel.google-validation.invalid-authmethod-message" : "The Authentication Method must be 'ClientLogin' or 'OAuth2'",
   "ds-properties-panel.google-validation.requires-refresh-token-message" : "The Refresh key is required for OAuth2 authentication",
@@ -208,6 +210,7 @@
   "import-datasource-type-submit.click-here-1" : "Click here",
   "import-datasource-type-submit.upload-complete.title" : "Uploading Data Source type [Complete]",
   "empty-text-validator.empty-message" : "Please enter a value",
-  "duplicate-name-validator.name-exists-msg" : "The name '{0}' is already in use"  
+  "duplicate-name-validator.name-exists-msg" : "The name '{0}' is already in use",
+  "integer-value-validator.notvalid-message" : "Please enter a valid integer"  
 }
 		
