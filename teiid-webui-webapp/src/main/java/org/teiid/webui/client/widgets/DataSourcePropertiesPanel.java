@@ -44,6 +44,7 @@ import org.teiid.webui.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.webui.client.utils.UiUtils;
 import org.teiid.webui.client.widgets.validation.DuplicateNameValidator;
 import org.teiid.webui.client.widgets.validation.EmptyNameValidator;
+import org.teiid.webui.client.widgets.validation.IntegerValueValidator;
 import org.teiid.webui.client.widgets.validation.NamedListBox;
 import org.teiid.webui.client.widgets.validation.ServiceNameValidator;
 import org.teiid.webui.client.widgets.validation.TextChangeListener;
@@ -89,6 +90,7 @@ public class DataSourcePropertiesPanel extends Composite {
     @Inject
     private ApplicationStateService stateService;
     
+	private String statusSelectType = null;
 	private String statusEnterProps = null;
 	private String externalError = null;
 	
@@ -135,6 +137,9 @@ public class DataSourcePropertiesPanel extends Composite {
     @Inject @DataField("listbox-dsprops-translator")
     protected NamedListBox namedTranslatorListBox;
     
+    @Inject @DataField("textbox-dsprops-timeout")
+    protected ValidatingTextBoxHoriz timeoutTextBox;
+    
     private ListBox translatorListBox;
     
     @Inject @DataField("label-coreprops-title")
@@ -165,6 +170,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	dsDetailsPanelTitle.setText("[New Source]");
     	corePropsTitle.setText("Connection Properties");
     	
+		statusSelectType = i18n.format("ds-properties-panel.status-select-type");
 		statusEnterProps = i18n.format("ds-properties-panel.status-enter-props");
 		
     	doPopulateSourceTypesPanel(null);
@@ -200,11 +206,24 @@ public class DataSourcePropertiesPanel extends Composite {
         	}
         });
         
+    	timeoutTextBox.setLabelHTML("<div><h6>Deployment Timeout (sec)</h6></div>");
+        timeoutTextBox.setLabelVisible(true);
+        timeoutTextBox.setText(String.valueOf(Constants.VDB_LOADING_TIMEOUT_SECS));
+    	timeoutTextBox.addTextChangeListener(new TextChangeListener() {
+            @Override
+			public void textChanged(  ) {
+            	updateStatus();
+            }
+        });
+    	timeoutTextBox.addValidator(new EmptyNameValidator());
+    	timeoutTextBox.addValidator(new IntegerValueValidator());
+    	        
         // Tooltips
         cancelSourceChanges.setTitle(i18n.format("ds-properties-panel.cancelSourceChanges.tooltip"));
         saveSourceChanges.setTitle(i18n.format("ds-properties-panel.saveSourceChanges.tooltip"));
         nameTextBox.setTitle(i18n.format("ds-properties-panel.nameTextBox.tooltip"));
         namedTranslatorListBox.setTitle(i18n.format("ds-properties-panel.translatorListBox.tooltip"));
+        timeoutTextBox.setTitle(i18n.format("ds-properties-panel.timeoutTextBox.tooltip"));
     }
     
     /**
@@ -253,7 +272,7 @@ public class DataSourcePropertiesPanel extends Composite {
     			// Only the translator changed.  No need to muck with DS - just redeploy VDB and its source
     		} else if(!hasNameChange() && !hasPropertyChanges() && !hasDataSourceTypeChange() && hasTranslatorChange()) {
     			DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
-    			doCreateSourceVdbWithTeiidDS(sourceBean,Constants.VDB_LOADING_TIMEOUT_SECS);
+    			doCreateSourceVdbWithTeiidDS(sourceBean,Integer.valueOf(timeoutTextBox.getText()));
     			// No name change
     		} else if(!hasNameChange()) {
     			showConfirmSourceRedeployDialog();
@@ -386,7 +405,7 @@ public class DataSourcePropertiesPanel extends Composite {
     
     private void onRedeployConfirmed() {
         DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
-    	doCreateDataSource(sourceBean,Constants.VDB_LOADING_TIMEOUT_SECS);
+    	doCreateDataSource(sourceBean,Integer.valueOf(timeoutTextBox.getText()));
     }
     
     private void onChangeTypeConfirmed() {
@@ -526,7 +545,7 @@ public class DataSourcePropertiesPanel extends Composite {
     			}
     		}
     	}
-    	setWidgetsVisibility(this.isNewSource);
+    	updateStatus();
     }
     
     private void deselectDSTypeButtons() {
@@ -844,7 +863,7 @@ public class DataSourcePropertiesPanel extends Composite {
     		String title = i18n.format("ds-properties-panel.createnew-title");
         	dsDetailsPanelTitle.setText(title);
         	
-        	setNameValidators();
+    		setNameValidators();
         	nameTextBox.setText(Constants.BLANK);
         	originalName = Constants.BLANK;
         	
@@ -875,9 +894,9 @@ public class DataSourcePropertiesPanel extends Composite {
     	if(isPlaceHolder) {
     		// If no type is selected, hide components
     		boolean typeSelected = getSelectedDataSourceType()!=null;
-    		statusText.setVisible(typeSelected);
     		nameTextBox.setVisible(typeSelected);
     		namedTranslatorListBox.setVisible(typeSelected);
+    		timeoutTextBox.setVisible(typeSelected);
 
     		boolean translatorSelected = !getSelectedTranslator().equals(Constants.NO_TRANSLATOR_SELECTION);
 			corePropsTitle.setVisible(translatorSelected);
@@ -893,9 +912,9 @@ public class DataSourcePropertiesPanel extends Composite {
     		}
     	// Not a placeholder - show all widgets
     	} else {
-    		statusText.setVisible(true);
     		nameTextBox.setVisible(true);
     		namedTranslatorListBox.setVisible(true);
+    		timeoutTextBox.setVisible(true);
 			corePropsTitle.setVisible(true);
     	    dataSourceCorePropertyEditor.setVisible(true);
     	    advPropsAccordion.setVisible(advPropsAccordion.hasProperties());
@@ -985,7 +1004,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	// Warn for no type selection
     	String dsType = getSelectedDataSourceType();
     	if(StringUtils.isEmpty(dsType)) {
-    		status = statusEnterProps;
+    		status = statusSelectType;
     	}
     	
         // Checks validity of service name entry
@@ -1022,6 +1041,14 @@ public class DataSourcePropertiesPanel extends Composite {
         	}
     	}
     	
+        // Checks validity of timeout entry
+    	if(status.equals(Constants.OK)) {
+    		boolean isOK = timeoutTextBox.isValid();
+    		if(!isOK) {
+    			status = statusEnterProps;
+    		}
+    	}
+    	
 		boolean hasNameChange = hasNameChange();
 		boolean hasTypeChange = hasDataSourceTypeChange();
 		boolean hasTranslatorChange = hasTranslatorChange();
@@ -1039,7 +1066,7 @@ public class DataSourcePropertiesPanel extends Composite {
 		
     	// Determine if any properties were changed
     	if(status.equals(Constants.OK)) {
-    		statusText.setVisible(false);
+    		setInfoMessage(statusEnterProps);
     		if(hasNameChange || hasTypeChange || hasTranslatorChange || hasPropChanges || hasImportPropChanges) {
         		saveSourceChanges.setEnabled(true);
         		cancelSourceChanges.setEnabled(true);
@@ -1051,7 +1078,7 @@ public class DataSourcePropertiesPanel extends Composite {
         		saveSourceChanges.setEnabled(false);
     		}
     	} else {
-    		if(!this.isNewSource) setInfoMessage(status);
+    		setInfoMessage(status);
     		saveSourceChanges.setEnabled(false);
     	}
     }
@@ -1060,7 +1087,6 @@ public class DataSourcePropertiesPanel extends Composite {
      * Set the status info message
      */
     private void setInfoMessage(String statusMsg) {
-		statusText.setVisible(true);
     	statusText.setHTML(UiUtils.getStatusMessageHtml(statusMsg,UiUtils.MessageType.INFO));
     }
     
@@ -1076,7 +1102,6 @@ public class DataSourcePropertiesPanel extends Composite {
      * Set the status error message
      */
     private void setErrorMessage(String statusMsg) {
-		statusText.setVisible(true);
     	statusText.setHTML(UiUtils.getStatusMessageHtml(statusMsg,UiUtils.MessageType.ERROR));
     }
     
