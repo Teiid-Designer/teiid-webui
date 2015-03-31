@@ -39,13 +39,23 @@ public class TranslatorHelper {
 
 	public static final String TEIID_ACCUMULO_CLASS = "org.teiid.resource.adapter.accumulo.AccumuloManagedConnectionFactory"; //$NON-NLS-1$
 	public static final String TEIID_FILE_CLASS = "org.teiid.resource.adapter.file.FileManagedConnectionFactory"; //$NON-NLS-1$
-	public static final String TEIID_GOOGLE_CLASS = "org.teiid.resource.adapter.google.GoogleManagedConnectionFactory"; //$NON-NLS-1$
+	public static final String TEIID_GOOGLE_CLASS = "org.teiid.resource.adapter.google.SpreadsheetManagedConnectionFactory"; //$NON-NLS-1$
 	public static final String TEIID_INFINISPAN_CLASS = "org.teiid.resource.adapter.infinispan.InfinispanManagedConnectionFactory"; //$NON-NLS-1$
 	public static final String TEIID_LDAP_CLASS = "org.teiid.resource.adapter.ldap.LDAPManagedConnectionFactory"; //$NON-NLS-1$
 	public static final String TEIID_MONGODB_CLASS = "org.teiid.resource.adapter.mongodb.MongoDBManagedConnectionFactory"; //$NON-NLS-1$
 	public static final String TEIID_SALESORCE_CLASS = "org.teiid.resource.adapter.salesforce.SalesForceManagedConnectionFactory"; //$NON-NLS-1$
 	public static final String TEIID_WEBSERVICE_CLASS = "org.teiid.resource.adapter.ws.WSManagedConnectionFactory"; //$NON-NLS-1$
-
+	
+	public static final String GOOGLE_SOURCE_PROPERTY_KEY_AUTH_METHOD = "AuthMethod"; //$NON-NLS-1$
+	public static final String GOOGLE_SOURCE_PROPERTY_VALUE_AUTH_CLIENT_LOGIN = "ClientLogin"; //$NON-NLS-1$
+	public static final String GOOGLE_SOURCE_PROPERTY_VALUE_AUTH_OAUTH2 = "OAuth2"; //$NON-NLS-1$
+	public static final String GOOGLE_SOURCE_PROPERTY_KEY_REFRESH_TOKEN = "RefreshToken"; //$NON-NLS-1$
+	public static final String GOOGLE_SOURCE_PROPERTY_KEY_USERNAME = "Username"; //$NON-NLS-1$
+	public static final String GOOGLE_SOURCE_PROPERTY_KEY_PASSWORD = "Password"; //$NON-NLS-1$
+	public static final String GOOGLE_SOURCE_PROPERTY_KEY_SPREADSHEET_NAME = "SpreadsheetName"; //$NON-NLS-1$
+	public static final String FILE_SOURCE_PROPERTY_KEY_ALLOW_PARENT_PATHS = "AllowParentPaths"; //$NON-NLS-1$
+	public static final String FILE_SOURCE_PROPERTY_KEY_FILE_MAPPING = "FileMapping"; //$NON-NLS-1$
+	
 	public static final String ACCUMULO = "accumulo"; //$NON-NLS-1$
 	public static final String ACCESS = "access"; //$NON-NLS-1$
 	public static final String DB2 = "db2"; //$NON-NLS-1$

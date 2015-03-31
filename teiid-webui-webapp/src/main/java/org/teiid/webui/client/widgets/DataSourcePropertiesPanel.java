@@ -66,6 +66,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.DOM;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -241,20 +242,63 @@ public class DataSourcePropertiesPanel extends Composite {
     }
     
     private void saveChangesButtonClick(ClickEvent event) {
-    	// New source - bypass confirm dialog and create
-    	if(isNewSource) {
-    		onRedeployConfirmed();    		
-        // Only the translator changed.  No need to muck with DS - just redeploy VDB and its source
-    	} else if(!hasNameChange() && !hasPropertyChanges() && !hasDataSourceTypeChange() && hasTranslatorChange()) {
-            DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
-            doCreateSourceVdbWithTeiidDS(sourceBean,Constants.VDB_LOADING_TIMEOUT_SECS);
-        // No name change
-        } else if(!hasNameChange()) {
-        	showConfirmSourceRedeployDialog();
-        // Name change - confirm the rename first
-        } else {
-        	showConfirmRenameDialog();
-        }
+    	// Pre-Validate before submit.  This handles special case where some properties are 'conditionally' required. 
+    	// For example, some google property requirements depend on the entered value of the 'AuthMethod' property
+    	String validationMsg = preValidateOnSave();
+    	
+    	if(validationMsg.equals(Constants.OK)) {
+    		// New source - bypass confirm dialog and create
+    		if(isNewSource) {
+    			onRedeployConfirmed();    		
+    			// Only the translator changed.  No need to muck with DS - just redeploy VDB and its source
+    		} else if(!hasNameChange() && !hasPropertyChanges() && !hasDataSourceTypeChange() && hasTranslatorChange()) {
+    			DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
+    			doCreateSourceVdbWithTeiidDS(sourceBean,Constants.VDB_LOADING_TIMEOUT_SECS);
+    			// No name change
+    		} else if(!hasNameChange()) {
+    			showConfirmSourceRedeployDialog();
+    			// Name change - confirm the rename first
+    		} else {
+    			showConfirmRenameDialog();
+    		}
+    	} else {
+    		Window.alert(validationMsg);
+    	}
+    }
+    
+    /** 
+     * Handles special sources like google, which require some properties conditionally
+     * @return the validation status string
+     */
+    private String preValidateOnSave() {
+    	// Validate google entries before submittal
+    	if(DataSourceHelper.isGoogleSource(advPropsAccordion.getProperties())) {
+    		List<DataSourcePropertyBean> props = dataSourceCorePropertyEditor.getProperties();
+			String authMethod = DataSourceHelper.getPropertyValue(TranslatorHelper.GOOGLE_SOURCE_PROPERTY_KEY_AUTH_METHOD, props);
+			
+			// Verify the AuthMethod entry
+			if( !authMethod.equals("OAuth2") && !authMethod.equals("ClientLogin")) {
+				return i18n.format("ds-properties-panel.google-validation.invalid-authmethod-message");
+			}
+			
+			// Verify entries for AuthMethod 'OAuth2'
+    		if(authMethod.equals("OAuth2")) {
+    			String refreshToken = DataSourceHelper.getPropertyValue(TranslatorHelper.GOOGLE_SOURCE_PROPERTY_KEY_REFRESH_TOKEN, props);
+    			if(StringUtils.isEmpty(refreshToken)) {
+    				return i18n.format("ds-properties-panel.google-validation.requires-refresh-token-message");
+    			}
+    		}
+    		
+			// Verify entries for AuthMethod 'ClientLogin'
+    		if(authMethod.equals("ClientLogin")) {
+    			String username = DataSourceHelper.getPropertyValue(TranslatorHelper.GOOGLE_SOURCE_PROPERTY_KEY_USERNAME, props);
+    			String password = DataSourceHelper.getPropertyValue(TranslatorHelper.GOOGLE_SOURCE_PROPERTY_KEY_PASSWORD, props);
+    			if(StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
+    				return i18n.format("ds-properties-panel.google-validation.requires-namepass-message");
+    			}
+    		}
+    	}
+    	return Constants.OK;
     }
     
     private void cancelButtonClick(ClickEvent event) {
@@ -777,9 +821,9 @@ public class DataSourcePropertiesPanel extends Composite {
     	
     	// Put only the desired property type into the resultList
     	for(DataSourcePropertyBean prop : propList) {
-    		if(prop.isCoreProperty() && getCore) {
+    		if(getCore && DataSourceHelper.isCoreProperty(prop, propList)) {
     			resultList.add(prop);
-    		} else if(!prop.isCoreProperty() && !getCore) {
+    		} else if(!getCore && !DataSourceHelper.isCoreProperty(prop, propList)) {
     			resultList.add(prop);    			
     		}
     	}
