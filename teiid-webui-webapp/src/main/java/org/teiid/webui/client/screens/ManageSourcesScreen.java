@@ -310,7 +310,9 @@ public class ManageSourcesScreen extends Composite {
     	String dsName = row.getName();
 		dsNames.add(Constants.SERVICE_SOURCE_VDB_PREFIX+dsName);
     	dsNames.add(dsName);
-		doDeleteDataSourcesAndVdb(dsNames,Constants.SERVICE_SOURCE_VDB_PREFIX+dsName,previousDSSelection);
+    	// If previous selection = source being deleted, then 'next selection' should be null;
+    	String nextDSSelection = (dsName.equals(previousDSSelection)) ? null : previousDSSelection;
+		doDeleteDataSourcesAndVdb(dsNames,Constants.SERVICE_SOURCE_VDB_PREFIX+dsName,nextDSSelection);
     }
     
     /**
