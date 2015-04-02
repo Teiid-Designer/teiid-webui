@@ -27,12 +27,15 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.TextBox;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.webui.client.dialogs.UiEvent;
 import org.teiid.webui.client.dialogs.UiEventType;
 import org.teiid.webui.client.messages.ClientMessages;
+import org.teiid.webui.client.services.ApplicationStateKeys;
+import org.teiid.webui.client.services.ApplicationStateService;
 import org.teiid.webui.client.services.NotificationService;
 import org.teiid.webui.client.services.QueryRpcService;
 import org.teiid.webui.client.services.TeiidRpcService;
@@ -43,6 +46,7 @@ import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.beans.NotificationBean;
 import org.teiid.webui.share.beans.VdbDetailsBean;
 import org.teiid.webui.share.beans.VdbModelBean;
+import org.teiid.webui.share.services.StringUtils;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
@@ -53,6 +57,8 @@ import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.KeyUpEvent;
+import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
@@ -75,6 +81,8 @@ public class DataServicesLibraryScreen extends Composite {
     private ClientMessages i18n;
     @Inject
     private NotificationService notificationService;
+    @Inject
+    private ApplicationStateService stateService;
     
     @Inject
     protected TeiidRpcService teiidService;
@@ -85,6 +93,9 @@ public class DataServicesLibraryScreen extends Composite {
     private PlaceManager placeManager;
     
     @Inject ServiceFlowListWidget serviceFlowListWidget;
+    
+    @Inject @DataField("textbox-filter-services")
+    protected TextBox filterServicesTextBox;
     
     @Inject @DataField("btn-create-service")
     protected Button createServiceButton;
@@ -113,6 +124,18 @@ public class DataServicesLibraryScreen extends Composite {
     protected void postConstruct() {
     	servicesPanel.add(serviceFlowListWidget);
 
+    	String filterTxt = (String)stateService.get(ApplicationStateKeys.SERVICES_LIBRARY_FILTER_TEXT);
+    	filterServicesTextBox.setText(filterTxt);
+    	
+	    filterServicesTextBox.addKeyUpHandler(new KeyUpHandler() {
+            @Override
+            public void onKeyUp(KeyUpEvent event) {
+            	stateService.put(ApplicationStateKeys.SERVICES_LIBRARY_FILTER_TEXT, filterServicesTextBox.getText());
+            	// Update status
+            	populateGrid(currentServices);
+            }
+        });
+	    
     	// Tooltips
     	createServiceButton.setTitle(i18n.format("dslibrary.createServiceButton.tooltip"));
     	manageSourcesButton.setTitle(i18n.format("dslibrary.manageSourcesButton.tooltip"));
@@ -159,7 +182,28 @@ public class DataServicesLibraryScreen extends Composite {
     }
     
     private void populateGrid(List<ServiceRow> serviceList) {
-        serviceFlowListWidget.setItems(serviceList);
+    	List<ServiceRow> filteredServices = filterServices(serviceList);
+        serviceFlowListWidget.setItems(filteredServices);
+    }
+    
+    /**
+     * Filter the services based on the contents of the search box
+     * @param serviceList the list of services
+     * @return the filtered list of services
+     */
+    private List<ServiceRow> filterServices(List<ServiceRow> serviceList) {
+    	List<ServiceRow> resultRows = new ArrayList<ServiceRow>();
+    	
+    	String filterTxt = (String)stateService.get(ApplicationStateKeys.SERVICES_LIBRARY_FILTER_TEXT);
+    	for(ServiceRow row: serviceList) {
+    		if(StringUtils.isEmpty(filterTxt)) {
+    			resultRows.add(row);
+    		} else if(row.getName().toLowerCase().startsWith(filterTxt.trim().toLowerCase())) {
+    			resultRows.add(row);
+    		}
+    	}
+    
+    	return resultRows;
     }
     
     /**
@@ -171,6 +215,9 @@ public class DataServicesLibraryScreen extends Composite {
     		public void onReturn(List<VdbDetailsBean> serviceVdbs) {
                 // Convert VDBDetails to rows for the display
     			List<ServiceRow> serviceTableRows = getServiceRows(serviceVdbs);
+    			
+    			currentServices.clear();
+    			currentServices.addAll(serviceTableRows);
 
     			if(serviceTableRows.isEmpty()) {
     				placeManager.goTo(Constants.DATA_SERVICES_EMPTY_LIBRARY_SCREEN);
@@ -201,6 +248,9 @@ public class DataServicesLibraryScreen extends Composite {
                 // Convert VDBDetails to rows for the display
     			List<ServiceRow> serviceTableRows = getServiceRows(serviceVdbs);
 
+    			currentServices.clear();
+    			currentServices.addAll(serviceTableRows);
+    			
     			if(serviceTableRows.isEmpty()) {
     				placeManager.goTo(Constants.DATA_SERVICES_EMPTY_LIBRARY_SCREEN);
     			} else {
@@ -232,6 +282,9 @@ public class DataServicesLibraryScreen extends Composite {
                 // Convert VDBDetails to rows for the display
     			List<ServiceRow> serviceTableRows = getServiceRows(serviceVdbs);
 
+    			currentServices.clear();
+    			currentServices.addAll(serviceTableRows);
+    			
     			if(serviceTableRows.isEmpty()) {
     				placeManager.goTo(Constants.DATA_SERVICES_EMPTY_LIBRARY_SCREEN);
     			} else {
