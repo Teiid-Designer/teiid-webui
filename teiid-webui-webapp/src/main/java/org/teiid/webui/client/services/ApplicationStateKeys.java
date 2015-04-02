@@ -22,6 +22,7 @@ package org.teiid.webui.client.services;
  */
 public final class ApplicationStateKeys {
 
+	public static final String SERVICES_LIBRARY_FILTER_TEXT = "services-library.filter-text"; //$NON-NLS-1$
 	public static final String IN_PROGRESS_SVC_ORIGINAL_NAME = "inprogress.svc-original-name"; //$NON-NLS-1$
 	public static final String IN_PROGRESS_SVC_NAME = "inprogress.svc-name"; //$NON-NLS-1$
 	public static final String IN_PROGRESS_SVC_DESC = "inprogress.svc-desc"; //$NON-NLS-1$
