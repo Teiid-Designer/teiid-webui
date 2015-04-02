@@ -18,18 +18,17 @@ package org.teiid.webui.client.widgets;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.Heading;
+import org.gwtbootstrap3.client.ui.Image;
+import org.gwtbootstrap3.client.ui.ListBox;
 import org.jboss.errai.databinding.client.api.DataBinder;
 import org.jboss.errai.ui.client.widget.HasModel;
 import org.jboss.errai.ui.shared.api.annotations.AutoBound;
-import org.jboss.errai.ui.shared.api.annotations.Bound;
-import org.jboss.errai.ui.shared.api.annotations.DataField;
-import org.jboss.errai.ui.shared.api.annotations.EventHandler;
-import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.webui.client.dialogs.UiEvent;
 import org.teiid.webui.client.dialogs.UiEventType;
 import org.teiid.webui.client.messages.ClientMessages;
@@ -39,19 +38,22 @@ import org.teiid.webui.share.Constants;
 import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.Image;
-import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.ListBox;
+import com.google.gwt.user.client.ui.Widget;
 
 @Dependent
-@Templated("./LibraryServiceWidget.html")
 public class LibraryServiceWidget extends Composite implements HasModel<ServiceRow> {
 
+    interface LibraryServiceWidgetBinder extends UiBinder<Widget, LibraryServiceWidget> {}
+    private static LibraryServiceWidgetBinder uiBinder = GWT.create(LibraryServiceWidgetBinder.class);
+    
 	private static final String MORE_ACTIONS = "More Actions";
 	private static final String EDIT_ACTION = "Edit Service";
 	private static final String DUPLICATE_ACTION = "Duplicate Service";
@@ -70,55 +72,38 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
     
 	@Inject @AutoBound DataBinder<ServiceRow> serviceBinder;
 
-	@Inject @Bound @DataField("label-servicewidget-name") Label name;
+    @UiField
+    Heading nameText;
+    
+    @UiField
+    Heading descriptionText;
+    
+    @UiField
+    Image serviceStatusImage;
+    
+    @UiField
+    Button viewServiceButton;
 
-	@Inject @Bound @DataField("label-servicewidget-description") Label description;
-
-	@Inject @DataField("image-servicewidget-status")
-	protected Image viewServiceStatusImage;
-	
-	@Inject @DataField("label-servicewidget-visibility")
-	protected Label viewServiceVisibilityLabel;
-	
-	@Inject @DataField("btn-servicewidget-view")
-	protected Button viewServiceButton;
-
-    @Inject @DataField("listbox-servicewidget-more-actions")
-    protected ListBox moreActionsListBox;
+    @UiField
+    ListBox moreActionsListBox;
     
     @Inject Event<UiEvent> uiEvent;
     
-	public ServiceRow getModel() {
-		return serviceBinder.getModel();
-	}
-
-	public void setModel(ServiceRow service) {
-		serviceBinder.setModel(service);
-		
-		// Set the status image
-    	String rStatus = getModel().getStatus();
-    	if(Constants.STATUS_ACTIVE.equals(rStatus)) {
-        	this.viewServiceStatusImage.setResource(AppResource.INSTANCE.images().okIcon16x16Image());
-    	} else {
-        	this.viewServiceStatusImage.setResource(AppResource.INSTANCE.images().errorIcon16x16Image());
-    	}
-    	
-//    	ServiceRow row = getModel();
-//    	if(row.isVisible()) {
-//    		this.viewServiceVisibilityLabel.removeStyleName("glyphicon-eye-close");
-//    		this.viewServiceVisibilityLabel.addStyleName("glyphicon glyphicon-eye-open");
-//    	} else {
-//    		this.viewServiceVisibilityLabel.removeStyleName("glyphicon-eye-open");
-//    		this.viewServiceVisibilityLabel.addStyleName("glyphicon glyphicon-eye-close");
-//    	}
-    	
-	}
-
     /**
-     * Called after construction.
+     * Constructor
      */
-    @PostConstruct
-    protected void postConstruct() {
+    public LibraryServiceWidget() {
+        // Init the dashboard from the UI Binder template
+        initWidget(uiBinder.createAndBindUi(this));
+        
+        // other initialization
+        init();
+    }
+    
+    /**
+     * post-construction init
+     */
+    private void init() {
     	populateMoreActionsListBox();
     	
         // Change Listener for Type ListBox
@@ -141,11 +126,44 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
         		}
         	}
         });
+    	
+        // Click Handler for ViewService button
+    	viewServiceButton.addClickHandler(new ClickHandler()
+        {
+			@Override
+			public void onClick( final ClickEvent event ) {
+				doViewService();
+			}
+        });
 
     	// Tooltips
     	viewServiceButton.setTitle(i18n.format("lib-service-widget.viewServiceButton.tooltip"));
     	moreActionsListBox.setTitle(i18n.format("lib-service-widget.moreActionsListBox.tooltip"));
     }
+    
+	public ServiceRow getModel() {
+		return serviceBinder.getModel();
+	}
+
+	public void setModel(ServiceRow service) {
+		serviceBinder.setModel(service);
+		
+		// Set service name
+		String name = getModel().getName();
+		this.nameText.setText(name);
+		
+		// Set service description
+		String description = getModel().getDescription();
+		this.descriptionText.setText(description);
+		
+		// Set the status image
+    	String rStatus = getModel().getStatus();
+    	if(Constants.STATUS_ACTIVE.equals(rStatus)) {
+        	this.serviceStatusImage.setResource(AppResource.INSTANCE.images().okIcon16x16Image());
+    	} else {
+        	this.serviceStatusImage.setResource(AppResource.INSTANCE.images().errorIcon16x16Image());
+    	}
+	}
     
     /**
      * Init the List of Service actions
@@ -185,15 +203,6 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
 		uiEvent.fire(sEvent);
     }
     
-	/**
-	 * Event handler that fires when the user clicks the ViewService button.
-	 * @param event
-	 */
-	@EventHandler("btn-servicewidget-view")
-	public void onViewServiceButtonClick(ClickEvent event) {
-		doViewService();
-	}
-
 	/**
 	 * View Service - transitions to ViewDataServiceScreen
 	 */
