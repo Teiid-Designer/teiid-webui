@@ -15,6 +15,8 @@
  */
 package org.teiid.webui.backend.server.services;
 
+import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -561,8 +563,17 @@ public class QueryService implements IQueryService {
     	if(obj instanceof javax.sql.rowset.serial.SerialBlob) {
     		byte[] bytes = ((SerialBlob)obj).getBytes(1, 500);
     		colString = Arrays.toString(bytes);
+    	} if(obj instanceof Clob) {
+    		colString = "[no transform]";
+    	} if(obj instanceof Blob) {
+    		colString = "[no transform]";
     	} else {
-    		String value = resultSet.getString(index);
+    		String value = null;
+    		try {
+    			value = resultSet.getString(index);
+			} catch (Exception e) {
+				value = "[no transform]";
+			}
     		colString = value;
     	}
     	return colString;
