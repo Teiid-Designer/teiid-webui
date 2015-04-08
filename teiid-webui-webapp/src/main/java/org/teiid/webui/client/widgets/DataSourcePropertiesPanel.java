@@ -91,6 +91,7 @@ public class DataSourcePropertiesPanel extends Composite {
     private ApplicationStateService stateService;
     
 	private String statusSelectType = null;
+	private String statusSelectTranslator = null;
 	private String statusEnterProps = null;
 	private String externalError = null;
 	
@@ -171,6 +172,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	corePropsTitle.setText("Connection Properties");
     	
 		statusSelectType = i18n.format("ds-properties-panel.status-select-type");
+		statusSelectTranslator = i18n.format("ds-properties-panel.status-select-translator");
 		statusEnterProps = i18n.format("ds-properties-panel.status-enter-props");
 		
     	doPopulateSourceTypesPanel(null);
@@ -1019,7 +1021,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	if(status.equals(Constants.OK)) {
         	String translator = getSelectedTranslator();
     		if(translator!=null && translator.equals(Constants.NO_TRANSLATOR_SELECTION)) {
-    			status = statusEnterProps;
+    			status = statusSelectTranslator;
     		}
     	}
     	

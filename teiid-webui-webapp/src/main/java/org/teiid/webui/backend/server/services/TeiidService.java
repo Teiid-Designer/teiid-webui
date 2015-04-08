@@ -212,9 +212,9 @@ public class TeiidService implements ITeiidService {
     			} else {
     				dataSourcePageRow.setState(DataSourcePageRow.State.OK);
     			}
-    		// If DataSource has no corresponding source, the propsPanel will show 'no translator' error
+    		// If DataSource has no corresponding source, the propsPanel will show 'no translator' warning
     		} else {
-    			dataSourcePageRow.setState(DataSourcePageRow.State.ERROR);
+    			dataSourcePageRow.setState(DataSourcePageRow.State.NO_MATCHING_VDB);
     		}
     		resultDSPageRowList.add( dataSourcePageRow );
     		i++;

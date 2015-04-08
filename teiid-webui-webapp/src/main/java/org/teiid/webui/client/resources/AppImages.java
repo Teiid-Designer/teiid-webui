@@ -53,6 +53,9 @@ public interface AppImages extends ClientBundle {
     @Source("images/Ok_32x32.png")
     ImageResource okIcon32x32Image();
     
+    @Source("images/bullet_yellow.png")
+    ImageResource yellowBulletImage();
+
     @Source("images/Google_dv_logos_170x50.png")
     ImageResource dsType_google();
 
