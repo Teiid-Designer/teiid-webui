@@ -29,6 +29,7 @@ import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.CellList;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AbstractImagePrototype;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
@@ -116,11 +117,13 @@ public class DataSourceListWidget extends Composite {
        * The html of the images used for ok or error.
        */
         private final String okImageHtml;
+        private final String yellowBulletImageHtml;
         private final String deployingImageHtml;
         private final String errorImageHtml;
 
       public DataSourceCell( ) {
         this.okImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().okIcon16x16Image()).getHTML();
+        this.yellowBulletImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().yellowBulletImage()).getHTML();
         this.deployingImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().spinnner16x16Image()).getHTML();
         this.errorImageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().errorIcon16x16Image()).getHTML();
       }
@@ -139,6 +142,8 @@ public class DataSourceListWidget extends Composite {
             statusImageHtml = this.deployingImageHtml;
         } else if(dsRow.getState()==DataSourcePageRow.State.PLACEHOLDER) {
             statusImageHtml = Constants.BLANK;
+        } else if(dsRow.getState()==DataSourcePageRow.State.NO_MATCHING_VDB){
+        	statusImageHtml = this.yellowBulletImageHtml;
         } else {
         	statusImageHtml = this.errorImageHtml;
         }

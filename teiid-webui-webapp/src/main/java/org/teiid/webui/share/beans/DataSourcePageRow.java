@@ -33,6 +33,7 @@ public class DataSourcePageRow extends AbstractPageRow {
         DEPLOYING, 
         OK,
         ERROR,
+        NO_MATCHING_VDB,
         PLACEHOLDER
     }
     
