@@ -4,22 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.enterprise.context.Dependent;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
 
 import org.gwtbootstrap3.client.ui.FormGroup;
 import org.gwtbootstrap3.client.ui.FormLabel;
 import org.gwtbootstrap3.client.ui.HelpBlock;
 import org.gwtbootstrap3.client.ui.TextBox;
 import org.gwtbootstrap3.client.ui.constants.ValidationState;
-import org.teiid.webui.client.dialogs.UiEvent;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.KeyCodes;
-import com.google.gwt.event.dom.client.KeyDownEvent;
-import com.google.gwt.event.dom.client.KeyDownHandler;
-import com.google.gwt.event.dom.client.KeyUpEvent;
-import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Composite;
@@ -38,7 +30,7 @@ public class ValidatingTextBox extends Composite {
     FormGroup formgroup;
 
     @UiField
-    TextBox fgTextBox;
+    ExtendedTextBox fgTextBox;
     
     @UiField
     FormLabel fgLabel;
@@ -46,9 +38,6 @@ public class ValidatingTextBox extends Composite {
     @UiField
     HelpBlock fgHelpBlock;
     
-    @Inject Event<UiEvent> kUpEvent;
-    private String bSpaceText;
-       
     private List<TextValidator> validators = new ArrayList<TextValidator>();
     private boolean isValid = true;
     private List<TextChangeListener> listeners = new ArrayList<TextChangeListener>();
@@ -68,32 +57,13 @@ public class ValidatingTextBox extends Composite {
      * performs initialization after Ui binding is complete
      */
     private void init() {
-    	fgTextBox.addKeyDownHandler(new KeyDownHandler() {
-            @Override
-            public void onKeyDown(KeyDownEvent event) {
-            	// Update status
-    			int keyCode = event.getNativeEvent().getKeyCode();
-    			if(keyCode==KeyCodes.KEY_BACKSPACE) {
-    		    	bSpaceText = fgTextBox.getText();
-    			}
-            }
-        });
-    	fgTextBox.addKeyUpHandler(new KeyUpHandler() {
-            @Override
-            public void onKeyUp(KeyUpEvent event) {
-            	// Update status
-    			int keyCode = event.getNativeEvent().getKeyCode();
-    			if(keyCode==KeyCodes.KEY_BACKSPACE) {
-    		    	if(bSpaceText!=null && bSpaceText.length()>0) {
-        		    	updateStatus(bSpaceText.substring(0,bSpaceText.length()-1));
-        		    	notifyListeners();
-    		    	}
-    			} else {
-    		    	updateStatus(fgTextBox.getText());
-    		    	notifyListeners();
-    			}
-            }
-        });
+    	fgTextBox.addTextChangeEventHandler(new TextChangeEventHandler() {
+    		@Override
+    		public void onTextChange(TextChangeEvent event) {
+    			updateStatus(fgTextBox.getText());
+    			notifyListeners();
+    		}
+    	});
     }
     
     public void setPassword(boolean isPassword) {

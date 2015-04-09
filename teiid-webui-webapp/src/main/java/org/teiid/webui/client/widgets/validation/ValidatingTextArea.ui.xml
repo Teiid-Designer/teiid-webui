@@ -15,10 +15,11 @@
 -->
 <!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
 <ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+	xmlns:t="urn:import:org.teiid.webui.client.widgets.validation" 
 	xmlns:b="urn:import:org.gwtbootstrap3.client.ui">
 
 	<b:FormGroup ui:field="formgroup">
-        <b:TextArea b:id="formGrp" ui:field="fgTextArea"/>
+        <t:ExtendedTextArea b:id="formGrp" ui:field="fgTextArea"/>
         <b:HelpBlock ui:field="fgHelpBlock" text="Enter text"/>
 	</b:FormGroup>
 
