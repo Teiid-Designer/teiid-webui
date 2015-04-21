@@ -12,9 +12,7 @@
   </parent>
   
   <properties>
-    <version.org.uberfire>0.6.0-SNAPSHOT</version.org.uberfire>
-    <maven.gwt.plugin.version>2.6.1</maven.gwt.plugin.version>
-    <errai.jboss.home>${user.home}/apps/DV600-Servers/DV610-ER3-TeiidWebTest</errai.jboss.home>
+    <errai.jboss.home>${JBOSS_HOME}</errai.jboss.home>
   </properties>
   
   <dependencyManagement>
@@ -53,12 +51,6 @@
     <dependency>
       <groupId>org.jboss.errai</groupId>
       <artifactId>errai-data-binding</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jboss.errai</groupId>
-      <artifactId>errai-cdi-jboss</artifactId>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -106,6 +98,14 @@
     
     <!-- Third party libraries -->
     <dependency>
+      <groupId>org.jboss.as</groupId>
+      <artifactId>jboss-as-cli</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.as</groupId>
+      <artifactId>jboss-as-controller</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.owasp.encoder</groupId>
       <artifactId>encoder</artifactId>
     </dependency>
@@ -127,6 +127,22 @@
       <artifactId>errai-weld-integration</artifactId>
     </dependency>
 
+    <dependency>
+        <groupId>org.jboss.errai</groupId>
+        <artifactId>errai-ioc</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.jboss.errai</groupId>
+        <artifactId>errai-security-client</artifactId>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.jboss.errai</groupId>
+      <artifactId>errai-cdi-jboss</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    
     <dependency>
       <groupId>org.jboss.errai</groupId>
       <artifactId>errai-security-picketlink</artifactId>
@@ -152,10 +168,10 @@
     <dependency><groupId>org.hibernate</groupId><artifactId>hibernate-core</artifactId><scope>provided</scope></dependency>
     <dependency><groupId>org.hibernate</groupId><artifactId>hibernate-entitymanager</artifactId><scope>provided</scope></dependency>
     <dependency><groupId>org.hibernate</groupId><artifactId>hibernate-validator</artifactId><scope>provided</scope></dependency>
+    <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-cdi-jboss</artifactId><scope>provided</scope></dependency>
     <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-cdi-jetty</artifactId><scope>provided</scope></dependency>
     <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-codegen-gwt</artifactId><scope>provided</scope></dependency>
     <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-data-binding</artifactId><scope>provided</scope></dependency>
-    <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-ioc</artifactId><scope>provided</scope></dependency>
     <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-ioc-bus-support</artifactId><scope>provided</scope></dependency>
     <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-javax-enterprise</artifactId><scope>provided</scope></dependency>
     <dependency><groupId>org.jboss.errai</groupId><artifactId>errai-jaxrs-client</artifactId><scope>provided</scope></dependency>
