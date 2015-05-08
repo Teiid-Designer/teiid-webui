@@ -47,6 +47,7 @@ import org.teiid.webui.client.widgets.validation.EmptyNameValidator;
 import org.teiid.webui.client.widgets.validation.ServiceNameValidator;
 import org.teiid.webui.client.widgets.validation.TextChangeListener;
 import org.teiid.webui.client.widgets.validation.ValidatingTextBox;
+import org.teiid.webui.client.widgets.vieweditor.ViewEditorManager;
 import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.beans.DataSourcePageRow;
 import org.teiid.webui.share.beans.NotificationBean;
@@ -357,13 +358,16 @@ public class CreateDataServiceScreen extends Composite {
     		@Override
     		public void onReturn(List<DataSourcePageRow> dsInfos) {
     			// Update the list of queryable data sources
-    			List<String> queryableDSNames = new ArrayList<String>();
+    			List<DataSourcePageRow> queryableSources = new ArrayList<DataSourcePageRow>();
     			for(DataSourcePageRow row : dsInfos) {
     				if(row.getState()==DataSourcePageRow.State.OK) {
-            			queryableDSNames.add(row.getName());
+    					queryableSources.add(row);
     				}
     			}
-    			viewEditorPanel.setAvailableSources(queryableDSNames);
+    			// Set available sources on the editorManager
+    			ViewEditorManager.getInstance().setAvailableSources(queryableSources);
+    			// Tells editor wizard to refresh with the manager available sources
+    			viewEditorPanel.refreshAvailableSources();
     		}
     		@Override
     		public void onError(Throwable error) {

@@ -8,6 +8,29 @@
   <div style="border-style:solid;border-width:2px;border-color:#999999;">
   <div class="row">
     <div class="col-sm-12">
+      <div class="accordion" id="accordion0">
+        <div class="accordion-group">
+          <div class="accordion-heading" style="background-color:#BBBBBB">
+            <div class="row">
+              <div class="col-sm-10">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion0" href="#collapseHelpers">Service Editor</a>
+              </div>
+              <div class="col-sm-2">
+                <button data-field="btn-vieweditor-manage-sources" class="btn btn-primary btn-sm">Manage Sources</button>
+              </div>
+            </div>
+          </div>
+          <div id="collapseHelpers" class="accordion-body collapse in">
+            <div class="accordion-inner">
+              <div class="col-sm-12" data-field="view-editor-wizard"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12">
       <div style="background-color:#BBBBBB;border-style:solid;border-width:2px;border-color:#999999;font-weight:bold;">Service View Definition</div>
     </div>
   </div>
@@ -17,53 +40,6 @@
     </div>
     <div class="col-sm-3">
       <div data-field="panel-vieweditor-viewsources"></div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-12">
-      <div class="accordion" id="accordion0">
-        <div class="accordion-group">
-          <div class="accordion-heading" style="background-color:#BBBBBB">
-            <div class="row">
-              <div class="col-sm-10">
-                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion0" href="#collapseHelpers">Service Helpers</a>
-              </div>
-              <div class="col-sm-2">
-                <button data-field="btn-vieweditor-manage-sources" class="btn btn-primary btn-sm">Manage Sources</button>
-              </div>
-            </div>
-          </div>
-          <div id="collapseHelpers" class="accordion-body collapse in">
-            <div class="accordion-inner">
-              <!-- Nav tabs -->
-              <ul class="nav nav-tabs" role="tablist">
-                <li class="active"><a href="#sources" role="tab" data-toggle="tab" title="The active sources that can be used in your Data Service">Single Source Definition</a></li>
-                <li><a href="#joineditor" role="tab" data-toggle="tab" title="The join editor">Join Definition</a></li>
-                <li><a href="#samples" role="tab" data-toggle="tab" title="Templates that provide a starting point for your Data Service Definition">Templates</a></li>
-              </ul>
-
-              <!-- Tab panes -->
-              <div class="tab-content">
-                <div class="tab-pane active" id="sources">
-                  <div class="row">
-                    <div class="col-sm-12" data-field="single-source-editor"></div>
-                  </div>
-                </div>
-                <div class="tab-pane" id="joineditor">
-                  <div class="row">
-                    <div class="col-sm-12" data-field="join-editor"></div>
-                  </div>
-                </div>
-                <div class="tab-pane" id="samples">
-                  <div class="row">
-                    <div class="col-sm-12" data-field="templates-editor"></div>
-                  </div>
-                </div>
-              </div> 
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
   </div>

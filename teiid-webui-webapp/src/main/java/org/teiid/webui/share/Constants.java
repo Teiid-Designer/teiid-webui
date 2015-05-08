@@ -113,6 +113,8 @@ public class Constants {
 	public static final String OK = "OK";
 	public static final String QUESTION_MARK = "?";
 	public static final String DOT = ".";
+	public static final String SELECT = "SELECT";
+	public static final String FROM = "FROM";
 	public static final String SELECT_STAR_FROM = "SELECT * FROM";
 	public static final String LIMIT_10 = "LIMIT 10";
 	public static final String SPACE = " ";

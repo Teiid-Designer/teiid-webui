@@ -39,6 +39,8 @@ import org.teiid.webui.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.webui.client.widgets.validation.EmptyNameValidator;
 import org.teiid.webui.client.widgets.validation.TextChangeListener;
 import org.teiid.webui.client.widgets.validation.ValidatingTextArea;
+import org.teiid.webui.client.widgets.vieweditor.ViewEditorManager;
+import org.teiid.webui.client.widgets.vieweditor.ViewEditorWizardPanel;
 import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.beans.NotificationBean;
 import org.teiid.webui.share.beans.VdbDetailsBean;
@@ -66,7 +68,7 @@ public class ViewEditorPanel extends Composite {
 	private String queryResultDefaultMsg = null;
 	private String currentStatus = null;
 	private String owner;
-	private List<String> availableSourceNames = new ArrayList<String>();
+	//private List<String> availableSourceNames = new ArrayList<String>();
 	
     @Inject
     private PlaceManager placeManager;
@@ -107,16 +109,16 @@ public class ViewEditorPanel extends Composite {
     @Inject Event<UiEvent> stateChangedEvent;
 
     // Single Source Editor
-    @Inject @DataField("single-source-editor")
-    private SingleSourceEditorPanel singleSourceEditorPanel;
+    @Inject @DataField("view-editor-wizard")
+    private ViewEditorWizardPanel viewEditorWizardPanel;
     
-    // Join Editor
-    @Inject @DataField("join-editor")
-    private JoinEditorPanel joinEditorPanel;
-    
-    // Templates Editor
-    @Inject @DataField("templates-editor")
-    private TemplatesEditorPanel templatesEditorPanel;
+//    // Join Editor
+//    @Inject @DataField("join-editor")
+//    private JoinEditorPanel joinEditorPanel;
+//    
+//    // Templates Editor
+//    @Inject @DataField("templates-editor")
+//    private TemplatesEditorPanel templatesEditorPanel;
     
     // The results panel for display of example data
     private QueryResultsPanel queryResultsPanel;
@@ -178,15 +180,16 @@ public class ViewEditorPanel extends Composite {
     }
     
     /**
-     * Sets the available dataSources for the editor
-     * @param availableSourceNames the available sources
+     * Refresh the available dataSources from the editorManager
      */
-	public void setAvailableSources(List<String> availableSourceNames) {
-		this.availableSourceNames.clear();
-		this.availableSourceNames.addAll(availableSourceNames);
-		singleSourceEditorPanel.setAvailableSources(availableSourceNames);
-		joinEditorPanel.setAvailableSources(availableSourceNames);
-		viewSourcePanel.setAllAvailableSources(availableSourceNames);
+	public void refreshAvailableSources( ) {
+		//this.availableSourceNames.clear();
+		//this.availableSourceNames.addAll(availableSourceNames);
+		//singleSourceEditorPanel.setAvailableSources(availableSourceNames);
+		//joinEditorPanel.setAvailableSources(availableSourceNames);
+		//ViewEditorManager.getInstance().setAvailableSources(availableSourceNames);
+		viewEditorWizardPanel.refreshAvailableSources();
+		viewSourcePanel.setAllAvailableSources(ViewEditorManager.getInstance().getAvailableSourceNames());
 	}
     
     public void setViewDdl(String ddlStr) {
@@ -195,7 +198,7 @@ public class ViewEditorPanel extends Composite {
     }
     
     public void setViewSources(List<String> viewSources) {
-    	this.viewSourcePanel.setData(viewSources,this.availableSourceNames);
+    	this.viewSourcePanel.setData(viewSources,ViewEditorManager.getInstance().getAvailableSourceNames());
     	updateStatus();
     }
     
@@ -210,6 +213,7 @@ public class ViewEditorPanel extends Composite {
     public void setServiceName(String svcName) {
     	this.serviceName = svcName;
     	this.testSqlTextArea.setText(Constants.BLANK);  // Force reset of test query if service name changes
+    	this.viewEditorWizardPanel.reset();  // Resets any saved state
     	updateStatus();
     }
 
@@ -287,7 +291,7 @@ public class ViewEditorPanel extends Composite {
     private void replaceViewDefn(String ddl,List<String> viewSrcNames) {
     	viewDdlTextArea.setText(ddl);  
     	if(viewSrcNames!=null) {
-    		viewSourcePanel.setData(viewSrcNames,singleSourceEditorPanel.getAllSourceNames());
+    		viewSourcePanel.setData(viewSrcNames,ViewEditorManager.getInstance().getAvailableSourceNames());
     	}
     	
     	haveSuccessfullyTested = false;
