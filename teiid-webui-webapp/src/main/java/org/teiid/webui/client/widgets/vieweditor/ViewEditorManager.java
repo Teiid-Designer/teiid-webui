@@ -11,12 +11,10 @@ import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.beans.DataSourcePageRow;
 import org.teiid.webui.share.services.StringUtils;
 
-import com.google.gwt.user.client.Window;
-
 
 /**
  * ViewEditorManager
- * Business object that wizard pages can access.
+ * Business object that maintains state for the ViewEditor
  * Currently the Manager is set up for one or two tables.  Can be expanded in future to handle more if required.
  *
  */
@@ -32,7 +30,8 @@ public class ViewEditorManager {
 	private Map<Integer,String> joinColumnMap = new HashMap<Integer,String>();
 	private Map<Integer,String> sourceForTableMap = new HashMap<Integer,String>();
 	private List<DataSourcePageRow> allAvailableSources = new ArrayList<DataSourcePageRow>();
-	private Map<Integer,String> sourceTransformationSQLMap = new HashMap<Integer,String>();
+	private Map<Integer,String> templateSQLMap = new HashMap<Integer,String>();
+	private Map<Integer,String> templateDDLMap = new HashMap<Integer,String>();
 	private String joinType = "INNER";
 	private int defineTemplateTableIndx = 0;
 
@@ -61,9 +60,40 @@ public class ViewEditorManager {
 		selectedColumnTypesMap.clear();
 		joinColumnMap.clear();
 		sourceForTableMap.clear();
-		sourceTransformationSQLMap.clear();
+		templateSQLMap.clear();
+		templateDDLMap.clear();
 		joinType = "INNER";
 		defineTemplateTableIndx = 0;
+	}
+	
+	/**
+	 * Get the source type for the specified source
+	 * @param sourceName the source name
+	 * @return the source type
+	 */
+	public String getSourceType(String sourceName) {
+		// The name of the source
+		for(DataSourcePageRow source : getAvailableSources()) {
+			if(source.getName().equalsIgnoreCase(sourceName)) {
+				return source.getType();
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Get the translator for the specified source
+	 * @param sourceName the source name
+	 * @return the translator
+	 */
+	public String getSourceTranslator(String sourceName) {
+		// The name of the source
+		for(DataSourcePageRow source : getAvailableSources()) {
+			if(source.getName().equalsIgnoreCase(sourceName)) {
+				return source.getTranslator();
+			}
+		}
+		return null;
 	}
 	
 	/**
@@ -72,7 +102,9 @@ public class ViewEditorManager {
 	 * @param sourceName the source name
 	 */
 	public void setSourceForTable(int tableIndx, String sourceName) {
-		this.sourceForTableMap.put(tableIndx, sourceName);
+		if(hasTable(tableIndx)) {
+			this.sourceForTableMap.put(tableIndx, sourceName);
+		}
 	}
 	
 	/**
@@ -101,6 +133,22 @@ public class ViewEditorManager {
 	}
 	
 	/**
+	 * Get the translator for the specified table
+	 * @param tableIndx the table index
+	 * @return the translator
+	 */
+	public String getTranslatorForTable(int tableIndx) {
+		// The name of the source
+		String sourceName = getSourceNameForTable(tableIndx);
+		for(DataSourcePageRow source : getAvailableSources()) {
+			if(source.getName().equalsIgnoreCase(sourceName)) {
+				return source.getTranslator();
+			}
+		}
+		return null;
+	}
+	
+	/**
 	 * Return template required states for the current tables.
 	 * @return list of "template required" states for the tables.
 	 */
@@ -109,7 +157,8 @@ public class ViewEditorManager {
 		List<Boolean> requiredStates = new ArrayList<Boolean>(nTables);
 		for(int i=0; i<nTables; i++) {
 			String sourceType = getSourceTypeForTable(i);
-			if(sourceType.equalsIgnoreCase("webservice") || sourceType.equalsIgnoreCase("file")) {
+			String translator = getTranslatorForTable(i);
+			if( (sourceType.equalsIgnoreCase("webservice")&&!translator.equalsIgnoreCase("odata")) || sourceType.equalsIgnoreCase("file")) {
 				requiredStates.add(true);
 			} else {
 				requiredStates.add(false);
@@ -183,10 +232,19 @@ public class ViewEditorManager {
 			selectedColumnTypesMap.put(index, selectedColumnTypesMap.get(index+1));
 			joinColumnMap.put(index, joinColumnMap.get(index+1));;
 			sourceForTableMap.put(index, sourceForTableMap.get(index+1));
-			sourceTransformationSQLMap.put(index, sourceTransformationSQLMap.get(index+1));
+			templateSQLMap.put(index, templateSQLMap.get(index+1));
+			templateDDLMap.put(index, templateDDLMap.get(index+1));
 			clearMaps(index+1);
 			tables.remove(index);
 		}
+	}
+	
+	private boolean hasTable(int tableIndx) {
+		int nTables = tables.size();
+		if( (tableIndx+1) <= nTables ) {
+			return true;
+		}
+		return false;
 	}
 	
 	public void clearMaps(int tableIndx) {
@@ -196,7 +254,8 @@ public class ViewEditorManager {
 		selectedColumnTypesMap.put(tableIndx, null);
 		joinColumnMap.put(tableIndx, null);;
 		sourceForTableMap.put(tableIndx, null);
-		sourceTransformationSQLMap.put(tableIndx, null);
+		templateSQLMap.put(tableIndx, null);
+		templateDDLMap.put(tableIndx, null);
 	}
 	
 	/**
@@ -230,6 +289,22 @@ public class ViewEditorManager {
 		return index;
 	}
 
+	public List<TableListItem> getTableItems() {
+    	List<TableListItem> tableItems = new ArrayList<TableListItem>();
+    	for(int i=0; i<tables.size(); i++) {
+    		String tableName = tables.get(i);
+    		String srcName = getSourceNameForTable(i);
+    		String srcType = getSourceType(srcName);
+    		
+    		TableListItem item = new TableListItem();
+    		item.setTableName(tableName);
+    		item.setSourceName(srcName);
+    		item.setType(srcType);
+    		tableItems.add(item);
+    	}
+		return tableItems;
+	}
+	
 	/**
 	 * Sets this list of all available sources currently on the server
 	 * @param allSources all available sources
@@ -265,7 +340,9 @@ public class ViewEditorManager {
 	 * @param columns the list of available columns
 	 */
 	public void setColumns(Integer tableIndx,List<CheckableNameTypeRow> columns) {
-		allColumnsMap.put(tableIndx,columns);
+		if(hasTable(tableIndx)) {
+			allColumnsMap.put(tableIndx,columns);
+		}
 	}
 	
 	/**
@@ -276,7 +353,7 @@ public class ViewEditorManager {
 	public List<CheckableNameTypeRow> getColumns(Integer tableIndx) {
 		// If the table requires a template, parse the columns in the template sql
 		if(tableRequiresTemplate(tableIndx)) {
-			String sqlTemplate = getSourceTransformationSQL(tableIndx);
+			String sqlTemplate = getTemplateSQL(tableIndx);
 			return getColumnsFromSQL(sqlTemplate);
 		// No template - get columns from map
 		} else {
@@ -309,7 +386,9 @@ public class ViewEditorManager {
 	 * @param columnNames the list of selected columns
 	 */
 	public void setSelectedColumns(Integer tableIndx, List<String> columnNames) {
-		selectedColumnNamesMap.put(tableIndx,columnNames);
+		if(hasTable(tableIndx)) {
+			selectedColumnNamesMap.put(tableIndx,columnNames);
+		}
 	}
 	
 	/**
@@ -327,7 +406,9 @@ public class ViewEditorManager {
 	 * @param columnTypes the list of selected column types
 	 */
 	public void setSelectedColumnTypes(Integer tableIndx, List<String> columnTypes) {
-		selectedColumnTypesMap.put(tableIndx,columnTypes);
+		if(hasTable(tableIndx)) {
+			selectedColumnTypesMap.put(tableIndx,columnTypes);
+		}
 	}
 	
 	/**
@@ -345,7 +426,9 @@ public class ViewEditorManager {
 	 * @param columnName the join column name
 	 */
 	public void setJoinColumn(Integer tableIndx, String columnName) {
-		joinColumnMap.put(tableIndx,columnName);
+		if(hasTable(tableIndx)) {
+			joinColumnMap.put(tableIndx,columnName);
+		}
 	}
 	
 	/**
@@ -358,21 +441,43 @@ public class ViewEditorManager {
 	}
 	
 	/**
-	 * Set the Source Transformation SQL for the specified table.  Only required for 'templated' sources like webservices or file sources
+	 * Set the template SQL for the specified table.  Only required for 'templated' sources like webservices or file sources
 	 * @param tableIndx the table index
-	 * @param sql the source transformation SQL
+	 * @param sql the template SQL
 	 */
-	public void setSourceTransformationSQL(Integer tableIndx, String sql) {
-		this.sourceTransformationSQLMap.put(tableIndx, sql);
+	public void setTemplateSQL(Integer tableIndx, String sql) {
+		if(hasTable(tableIndx)) {
+			this.templateSQLMap.put(tableIndx, sql);
+		}
 	}
 	
 	/**
-	 * Set the Source Transformation SQL for the specified table.  Only required for 'templated' sources like webservices or file sources
+	 * Set the template SQL for the specified table.  Only required for 'templated' sources like webservices or file sources
 	 * @param tableIndx the table index
-	 * @return the source transformation SQL
+	 * @return the template SQL
 	 */
-	public String getSourceTransformationSQL(Integer tableIndx) {
-		return this.sourceTransformationSQLMap.get(tableIndx);
+	public String getTemplateSQL(Integer tableIndx) {
+		return this.templateSQLMap.get(tableIndx);
+	}
+
+	/**
+	 * Set the template DDL for the specified table.  Only required for 'templated' sources like webservices or file sources
+	 * @param tableIndx the table index
+	 * @param sql the template DDL
+	 */
+	public void setTemplateDDL(Integer tableIndx, String ddl) {
+		if(hasTable(tableIndx)) {
+			this.templateDDLMap.put(tableIndx, ddl);
+		}
+	}
+	
+	/**
+	 * Set the template DDL for the specified table.  Only required for 'templated' sources like webservices or file sources
+	 * @param tableIndx the table index
+	 * @return the template SQL
+	 */
+	public String getTemplateDDL(Integer tableIndx) {
+		return this.templateDDLMap.get(tableIndx);
 	}
 
 	/**
@@ -392,25 +497,27 @@ public class ViewEditorManager {
 	}
 	
 	/**
-	 * Sets the Define Template table index
+	 * Sets the Table index for the DefineTemplate page
 	 * @param tableIndx the table index
 	 */
-	public void setDefineTemplateTableIndex(int tableIndx) {
-		this.defineTemplateTableIndx = tableIndx;
+	public void setTemplateTableIndex(int tableIndx) {
+		if(hasTable(tableIndx)) {
+			this.defineTemplateTableIndx = tableIndx;
+		}
 	}
 	
 	/**
-	 * Gets the Define Template table index
+	 * Gets the Table index for the DefineTemplate page
 	 * @return the table index
 	 */
-	public int getDefineTemplateTableIndex( ) {
+	public int getTemplateTableIndex( ) {
 		return this.defineTemplateTableIndx;
 	}
 	
 	/**
 	 * Constructs the DDL for the view, based on the current selections
 	 */
-	public String getViewDdl() {
+	public String buildViewDdl() {
 		if(getTables().size()==1) {
 			String selectedTable = getTable(0);
 			List<String> colNames = getSelectedColumns(0);
@@ -427,9 +534,6 @@ public class ViewEditorManager {
      * @return the DDL
      */
     private String buildJoinDdl( ) {
-    	String leftTable = getTable(0);
-    	String rightTable = getTable(1);
-    	
 		List<String> lhsColNames = getSelectedColumns(0);
 		List<String> lhsColTypes = getSelectedColumnTypes(0);
 		List<String> rhsColNames = getSelectedColumns(1);
@@ -443,12 +547,12 @@ public class ViewEditorManager {
     	String lhs = null;
     	String rhs = null;
     	if(tableRequiresTemplate(0)) {
-    		lhs = getSourceTransformationSQL(0);
+    		lhs = getTemplateSQL(0);
     	} else {
     		lhs = StringUtils.escapeSQLName(getTable(0));
     	}
     	if(tableRequiresTemplate(1)) {
-    		rhs = getSourceTransformationSQL(1);
+    		rhs = getTemplateSQL(1);
     	} else {
     		rhs = StringUtils.escapeSQLName(getTable(1));
     	}

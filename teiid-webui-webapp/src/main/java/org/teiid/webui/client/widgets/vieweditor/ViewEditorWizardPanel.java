@@ -21,22 +21,24 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
-import org.teiid.webui.client.messages.ClientMessages;
+import org.teiid.webui.client.resources.AppResource;
 import org.teiid.webui.client.services.TeiidRpcService;
-import org.teiid.webui.client.utils.DdlHelper;
-import org.uberfire.lifecycle.OnStartup;
 
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
 
 @Dependent
 @Templated("./ViewEditorWizardPanel.html")
+/**
+ * ViewEditorWizardPanel
+ * The ViewEditor wizard panel which controls wizard page display
+ */
 public class ViewEditorWizardPanel extends Composite {
 
 	private static final int FIRST_PAGE_SELECT_TABLES_INDX = 0;
@@ -45,16 +47,13 @@ public class ViewEditorWizardPanel extends Composite {
 	private static final int LAST_PAGE_DEFINE_JOIN_INDX = 3;
 	
     @Inject
-    private ClientMessages i18n;
-    
-    @Inject
     protected TeiidRpcService teiidService;
     
     @Inject @DataField("wizard-deckpanel")
     protected DeckPanel wizardDeckPanel;
     
-    @Inject @DataField("btn-resetPage")
-    protected Button resetPageButton;
+    //@Inject @DataField("btn-resetPage")
+    //protected Button resetPageButton;
     @Inject @DataField("btn-previousPage")
     protected Button previousPageButton;
     @Inject @DataField("btn-nextPage")
@@ -74,14 +73,18 @@ public class ViewEditorWizardPanel extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
+    	AppResource.INSTANCE.css().vcenterStyle().ensureInjected();
+    	
     	selectTablesPage.setWizard(this);
     	selectTableColumnsPage.setWizard(this);
     	defineTemplateDdlPage.setWizard(this);
     	defineJoinCriteriaPage.setWizard(this);
     	
-    	resetPageButton.setEnabled(true);
-    	previousPageButton.setEnabled(false);
-    	nextPageButton.setEnabled(false);
+    	previousPageButton.setIcon(IconType.ARROW_LEFT);
+    	nextPageButton.setIcon(IconType.ARROW_RIGHT);
+    	//resetPageButton.setEnabled(true);
+    	setNextButtonEnabled(false);
+    	setPreviousButtonEnabled(false);
     	
     	// Add all of the panels to wizard deckPanel
     	wizardDeckPanel.add(selectTablesPage);
@@ -113,18 +116,18 @@ public class ViewEditorWizardPanel extends Composite {
     	updatePage(FIRST_PAGE_SELECT_TABLES_INDX);
     }
     
-    /**
-     * Event handler that fires when the user clicks the ResetPage button.
-     * @param event
-     */
-    @EventHandler("btn-resetPage")
-    public void onResetPageButtonClick(ClickEvent event) {
-    	// Reset any saved state
-    	reset();
-
-    	// Show the first page
-    	wizardDeckPanel.showWidget(FIRST_PAGE_SELECT_TABLES_INDX);
-    }
+//    /**
+//     * Event handler that fires when the user clicks the ResetPage button.
+//     * @param event
+//     */
+//    @EventHandler("btn-resetPage")
+//    public void onResetPageButtonClick(ClickEvent event) {
+//    	// Reset any saved state
+//    	reset();
+//
+//    	// Show the first page
+//    	wizardDeckPanel.showWidget(FIRST_PAGE_SELECT_TABLES_INDX);
+//    }
 
     /**
      * Event handler that fires when the user clicks the NextPage button.
@@ -158,6 +161,7 @@ public class ViewEditorWizardPanel extends Composite {
     	
     	// Update next page, then show it
     	updatePage(nextIndx);
+    	
     	wizardDeckPanel.showWidget(nextIndx);
     	    	
     	// If on last page, next button is enabled
@@ -188,7 +192,7 @@ public class ViewEditorWizardPanel extends Composite {
     		if(editorManager.getTables().size()==1) {
     			// If the table requires a template, show template page
         		if(editorManager.getTableTemplateRequiredStates().get(0)) {
-        			editorManager.setDefineTemplateTableIndex(0);
+        			editorManager.setTemplateTableIndex(0);
         			resultIndx = DEFINE_TEMPLATE_PAGE_INDX;
         		// No template required, show the 'pick columns' page
         		} else {
@@ -198,11 +202,11 @@ public class ViewEditorWizardPanel extends Composite {
     			List<Boolean> tableRequiredStates = editorManager.getTableTemplateRequiredStates();
     			// Determine if table one requires a template
         		if(tableRequiredStates.get(0)) {
-        			editorManager.setDefineTemplateTableIndex(0);
+        			editorManager.setTemplateTableIndex(0);
         			resultIndx = DEFINE_TEMPLATE_PAGE_INDX;
         		// Determine if table two requires a template
         		} else if(tableRequiredStates.get(1)) {
-        			editorManager.setDefineTemplateTableIndex(1);
+        			editorManager.setTemplateTableIndex(1);
         			resultIndx = DEFINE_TEMPLATE_PAGE_INDX;
         		} else {
         			resultIndx = LAST_PAGE_DEFINE_JOIN_INDX;
@@ -222,11 +226,11 @@ public class ViewEditorWizardPanel extends Composite {
         			resultIndx = LAST_PAGE_DEFINE_JOIN_INDX;
         		} else if(tablesNeedingTemplates==2) {
         			// If on the second table, then go to DEFINE_JOIN
-        			int tableIndx = editorManager.getDefineTemplateTableIndex();
+        			int tableIndx = editorManager.getTemplateTableIndex();
         			if(tableIndx==1) {
             			resultIndx = LAST_PAGE_DEFINE_JOIN_INDX;
         			} else if(tableIndx==0) {
-            			editorManager.setDefineTemplateTableIndex(1);
+            			editorManager.setTemplateTableIndex(1);
         				resultIndx = DEFINE_TEMPLATE_PAGE_INDX;
         			}
         		}
@@ -283,11 +287,11 @@ public class ViewEditorWizardPanel extends Composite {
     			resultIndx = FIRST_PAGE_SELECT_TABLES_INDX;
     		} else if(tablesNeedingTemplates==2) {
     			// If on the second table, then stay on the DEFINE_TEMPLATE_PAGE - but update for first table
-    			if(editorManager.getDefineTemplateTableIndex()==1) {
-        			editorManager.setDefineTemplateTableIndex(0);
+    			if(editorManager.getTemplateTableIndex()==1) {
+        			editorManager.setTemplateTableIndex(0);
         			resultIndx = DEFINE_TEMPLATE_PAGE_INDX;
         		// If on the first table, then go to start page
-    			} else if(editorManager.getDefineTemplateTableIndex()==0) {
+    			} else if(editorManager.getTemplateTableIndex()==0) {
     				resultIndx = FIRST_PAGE_SELECT_TABLES_INDX;
     			}
     		}
@@ -301,11 +305,16 @@ public class ViewEditorWizardPanel extends Composite {
     			resultIndx = FIRST_PAGE_SELECT_TABLES_INDX;
     		// One template table.  go to DEFINE_TEMPLATE page populated with it.
     		} else if(tablesNeedingTemplates==1) {
-    			editorManager.setDefineTemplateTableIndex(0);
+    			// determine which of the two tables requires the template
+    			if(editorManager.tableRequiresTemplate(1)) {
+    				editorManager.setTemplateTableIndex(1);
+    			} else {
+    				editorManager.setTemplateTableIndex(0);
+    			}
     			resultIndx = DEFINE_TEMPLATE_PAGE_INDX;
     		// Two template tables.  go to DEFINE_TEMPLATE page, populated with second table
     		} else if(tablesNeedingTemplates==2) {
-    			editorManager.setDefineTemplateTableIndex(1);
+    			editorManager.setTemplateTableIndex(1);
     			resultIndx = DEFINE_TEMPLATE_PAGE_INDX;
     		}
     	} else {
@@ -321,39 +330,23 @@ public class ViewEditorWizardPanel extends Composite {
      */
     private void savePageSelectionsToManager(int indx) {
 		ViewEditorManager editorManager = ViewEditorManager.getInstance();
-    	switch (indx) {
-    	case FIRST_PAGE_SELECT_TABLES_INDX :
-    		//List<String> selctedTables = selectTablesPage.getSelectedTables();
-    		//editorManager.setTables(selctedTables);
-    	case LAST_PAGE_SELECT_TABLE_COLS_INDX :
+		if(indx==LAST_PAGE_SELECT_TABLE_COLS_INDX) {
     		List<String> selectedColumnNames = selectTableColumnsPage.getSelectedColumnNames();
     		List<String> selectedColumnTypes = selectTableColumnsPage.getSelectedColumnTypes();
     		editorManager.setSelectedColumns(0, selectedColumnNames);
     		editorManager.setSelectedColumnTypes(0, selectedColumnTypes);
-    	case DEFINE_TEMPLATE_PAGE_INDX :
-    		String ddl = defineTemplateDdlPage.getDdl();
-    		int tableIndx = editorManager.getDefineTemplateTableIndex();
-    		editorManager.setSourceTransformationSQL(tableIndx, ddl);
-    	case LAST_PAGE_DEFINE_JOIN_INDX :
-    		//defineJoinCriteriaPage.update();
-    	default: 
-
-    	}
+		}
     }
     
     private void updatePage(int indx) {
-
-    	switch (indx) {
-    	case FIRST_PAGE_SELECT_TABLES_INDX :
+    	if(indx==FIRST_PAGE_SELECT_TABLES_INDX) {
     		selectTablesPage.update();
-    	case LAST_PAGE_SELECT_TABLE_COLS_INDX :
+    	} else if(indx==LAST_PAGE_SELECT_TABLE_COLS_INDX) {
     		selectTableColumnsPage.update();
-    	case DEFINE_TEMPLATE_PAGE_INDX :
+    	} else if(indx==DEFINE_TEMPLATE_PAGE_INDX) {
     		defineTemplateDdlPage.update();
-    	case LAST_PAGE_DEFINE_JOIN_INDX :
+    	} else if(indx==LAST_PAGE_DEFINE_JOIN_INDX) {
     		defineJoinCriteriaPage.update();
-    	default: 
-
     	}
     }
     
@@ -363,6 +356,7 @@ public class ViewEditorWizardPanel extends Composite {
      */
     public void setNextButtonEnabled(boolean enabled) {
     	this.nextPageButton.setEnabled(enabled);
+    	this.nextPageButton.setVisible(enabled);
     }
 
     /**
@@ -371,6 +365,7 @@ public class ViewEditorWizardPanel extends Composite {
      */
     public void setPreviousButtonEnabled(boolean enabled) {
     	this.previousPageButton.setEnabled(enabled);
+    	this.previousPageButton.setVisible(enabled);
     }
         
 }

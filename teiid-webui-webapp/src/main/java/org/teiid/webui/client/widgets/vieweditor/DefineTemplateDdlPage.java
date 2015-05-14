@@ -22,13 +22,14 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.webui.client.dialogs.UiEvent;
 import org.teiid.webui.client.dialogs.UiEventType;
 import org.teiid.webui.client.messages.ClientMessages;
-import org.teiid.webui.client.services.NotificationService;
 import org.teiid.webui.client.services.QueryRpcService;
 import org.teiid.webui.client.services.TeiidRpcService;
 import org.teiid.webui.client.utils.DdlHelper;
@@ -39,19 +40,18 @@ import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.services.StringUtils;
 
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
 
 @Dependent
 @Templated("./DefineTemplateDdlPage.html")
+/**
+ * ViewEditor wizard page for definition of a template table's transformation
+ */
 public class DefineTemplateDdlPage extends Composite {
 
     @Inject
     private ClientMessages i18n;
-    @Inject
-    private NotificationService notificationService;
     
     @Inject
     protected TeiidRpcService teiidService;
@@ -66,12 +66,11 @@ public class DefineTemplateDdlPage extends Composite {
     protected Label messageLabel;
     
     @Inject @DataField("textarea-define-template-ddl")
-    protected ExtendedTextArea ddlTextArea;
+    protected ExtendedTextArea textArea;
     
     @Inject @DataField("btn-replace")
     protected Button replaceDdlButton;
     
-    private ViewEditorWizardPanel wizard;
 	private ViewEditorManager editorManager = ViewEditorManager.getInstance();
    
     /**
@@ -81,40 +80,67 @@ public class DefineTemplateDdlPage extends Composite {
     protected void postConstruct() {
     	messageLabel.setText("This type of sources requires a SQL transformation - please edit");
     	
-    	ddlTextArea.addTextChangeEventHandler(new TextChangeEventHandler() {
+    	textArea.addTextChangeEventHandler(new TextChangeEventHandler() {
             @Override
 			public void onTextChange(TextChangeEvent event) {
-            	int tableIndx = editorManager.getDefineTemplateTableIndex();
-            	editorManager.setSourceTransformationSQL(tableIndx, ddlTextArea.getText());
+            	int tableIndx = editorManager.getTemplateTableIndex();
+            	int nTables = editorManager.getTables().size();
+            	// Update editor manager
+            	if(nTables==1) {
+            		editorManager.setTemplateDDL(tableIndx, textArea.getText());
+            	} else {
+            		editorManager.setTemplateSQL(tableIndx, textArea.getText());
+            	}
             }
         });
+    	
+    	replaceDdlButton.setIcon(IconType.ARROW_DOWN);
     }
     
     /**
-     * Update the panel right before it is shown
+     * Refresh the panel using state from the ViewEditorManager
      */
     public void update() {
-    	ViewEditorManager editorManager = ViewEditorManager.getInstance();
-    	
     	// Get the table index of the Template table
-    	int tableIndx = editorManager.getDefineTemplateTableIndex();
-
+    	int tableIndx = editorManager.getTemplateTableIndex();
+    	int nTables = editorManager.getTables().size();
+    	
+    	// Get any existing DDL and SQL
+    	String existingDdl = editorManager.getTemplateDDL(tableIndx);
+    	String existingSql = editorManager.getTemplateSQL(tableIndx);
+    	
+    	// Get source and type for the table
 		String sourceType = editorManager.getSourceTypeForTable(tableIndx);
 		String sourceName = editorManager.getSourceNameForTable(tableIndx);
 		
     	// More than one table - the transformation SQL will be displayed.
-    	if(editorManager.getTables().size()>1) {
-    		String alias = (tableIndx==0) ? "X" : "Y";
-    		String sql = DdlHelper.getSourceTransformationSQLTemplate(sourceType,sourceName,alias);
-    	    editorManager.setSourceTransformationSQL(tableIndx, sql);
-    		setDdl(sql);
-    		
+    	if(nTables>1) {
+    		// Clear any previous ddl
+    		editorManager.setTemplateDDL(tableIndx, null);
+    		// Has existing SQL - use it
+    		if(!StringUtils.isEmpty(existingSql)) {
+    			setText(existingSql);
+    	    // No existing SQL - generate new
+    		} else {
+        		String alias = (tableIndx==0) ? "X" : "Y";
+        		String sql = DdlHelper.getSourceTransformationSQLTemplate(sourceType,sourceName,alias);
+        	    editorManager.setTemplateSQL(tableIndx, sql);
+        		setText(sql);
+    		}
 			setReplaceDdlButtonVisible(false);
     	// Only one table - set the View DDL and enable the replace button
     	} else {
-			String ddl = DdlHelper.getODataViewDdlTemplate(sourceType, Constants.SERVICE_VIEW_NAME, sourceName, "A");
-    		setDdl(ddl);
-    		
+    		// Clear any previous SQL
+    		editorManager.setTemplateSQL(tableIndx, null);
+    		// Has existing DDL - use it
+    		if(!StringUtils.isEmpty(existingDdl)) {
+    			setText(existingDdl);
+    	    // No existing DDL - generate new
+    		} else {
+    			String ddl = DdlHelper.getODataViewDdlTemplate(sourceType, Constants.SERVICE_VIEW_NAME, sourceName, "A");
+        	    editorManager.setTemplateDDL(tableIndx, ddl);
+        		setText(ddl);
+    		}
 			setReplaceDdlButtonVisible(true);
     	}
 		
@@ -133,23 +159,22 @@ public class DefineTemplateDdlPage extends Composite {
      * @param wizard the wizard
      */
     public void setWizard(ViewEditorWizardPanel wizard) {
-    	this.wizard = wizard;
     }
     
     /**
-     * Gets the DDL displayed in the DDL area
-     * @return the DDL
+     * Gets the text displayed in the text area
+     * @return the text
      */
-    public String getDdl() {
-    	return this.ddlTextArea.getText();
+    public String getText() {
+    	return this.textArea.getText();
     }
     
     /**
-     * Sets the DDL displayed in the DDL area
-     * @param ddl the DDL
+     * Sets the text displayed in the text area
+     * @param text the text
      */
-    public void setDdl(String ddl) {
-    	this.ddlTextArea.setText(ddl);
+    public void setText(String text) {
+    	this.textArea.setText(text);
     }
     
     /**
@@ -166,8 +191,8 @@ public class DefineTemplateDdlPage extends Composite {
      */
     @EventHandler("btn-replace")
     public void onReplaceDdlButtonClick(ClickEvent event) {
-    	String viewDdl = this.ddlTextArea.getText();
-    	List<String> sources = ViewEditorManager.getInstance().getSources();
+    	String viewDdl = this.textArea.getText();
+    	List<String> sources = editorManager.getSources();
      	
 		UiEvent uiEvent = new UiEvent(UiEventType.VIEW_DEFN_REPLACE_FROM_SSOURCE_EDITOR);
 		uiEvent.setViewDdl(viewDdl);

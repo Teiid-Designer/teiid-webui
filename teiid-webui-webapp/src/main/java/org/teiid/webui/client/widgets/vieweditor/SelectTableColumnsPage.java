@@ -22,6 +22,8 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
@@ -35,16 +37,13 @@ import org.teiid.webui.client.widgets.ColumnNamesTable;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
 
 @Dependent
 @Templated("./SelectTableColumnsPage.html")
 /**
- * SelectTableColumnsPage
- * This page is used to select the projected columns for a single source 'relational' table
- *
+ * ViewEditor wizard page for selection of a single table's columns
  */
 public class SelectTableColumnsPage extends Composite {
 
@@ -69,26 +68,25 @@ public class SelectTableColumnsPage extends Composite {
     @Inject @DataField("btn-table-columns-createDdl")
     private Button replaceDdlButton;
     
-    private ViewEditorWizardPanel wizard;
-   
-    /**
+	private ViewEditorManager editorManager = ViewEditorManager.getInstance();
+	   
+   /**
      * Called after construction.
      */
     @PostConstruct
     protected void postConstruct() {
     	messageLabel.setText("Select the projected columns for your view");
-    	
+ 
+    	replaceDdlButton.setIcon(IconType.ARROW_DOWN);
+
     	// Tooltips
     	columnsTable.setTitle(i18n.format("ssource-editor-panel.columnsTable.tooltip"));
     }
     
     /**
-     * Used to update panel right before it is shown
+     * Refresh the panel using state from the ViewEditorManager
      */
     public void update() {
-        // Initialize based on the ViewEditorManager selections
-    	ViewEditorManager editorManager = ViewEditorManager.getInstance();
-    	
     	String tableName = editorManager.getTable(0);
         titleLabel.setText(i18n.format("select-columns-page.title", tableName));
         tableTitleLabel.setText(tableName);
@@ -104,7 +102,6 @@ public class SelectTableColumnsPage extends Composite {
      * @param wizard the wizard
      */
     public void setWizard(ViewEditorWizardPanel wizard) {
-    	this.wizard = wizard;
     }
     
     /**
@@ -122,11 +119,11 @@ public class SelectTableColumnsPage extends Composite {
     	}
 
     	// Set the selected columns before generating ddl
-    	ViewEditorManager editorManager = ViewEditorManager.getInstance();
     	editorManager.setSelectedColumns(0, colNames);
     	editorManager.setSelectedColumnTypes(0, colTypes);
     	
-    	String viewDdl = editorManager.getViewDdl();
+    	// Builds a new View DDL based on selections and moves it to the View Defn area.
+    	String viewDdl = editorManager.buildViewDdl();
     	List<String> sources = editorManager.getSources();
      	
 		UiEvent uiEvent = new UiEvent(UiEventType.VIEW_DEFN_REPLACE_FROM_SSOURCE_EDITOR);

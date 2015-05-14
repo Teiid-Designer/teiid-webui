@@ -26,6 +26,7 @@ public class DataSourcePageRow extends AbstractPageRow {
 
     private String name;
     private String type;
+    private String translator;
     private State deploymentState = State.OK;
     private String errorMessage;
 
@@ -51,6 +52,14 @@ public class DataSourcePageRow extends AbstractPageRow {
 
     public void setType( String type ) {
         this.type = type;
+    }
+    
+    public String getTranslator() {
+        return translator;
+    }
+
+    public void setTranslator( String translator ) {
+        this.translator = translator;
     }
 
 	public void setState(State dsState) {

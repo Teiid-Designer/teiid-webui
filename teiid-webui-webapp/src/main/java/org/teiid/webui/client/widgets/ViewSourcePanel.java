@@ -26,6 +26,8 @@ import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
@@ -38,7 +40,6 @@ import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SelectionModel;
@@ -98,7 +99,9 @@ public class ViewSourcePanel extends Composite {
     	
     	// Tooltips
     	addButton.setTitle(i18n.format("viewsource-panel.addButton.tooltip"));
+    	addButton.setIcon(IconType.PLUS);
     	deleteButton.setTitle(i18n.format("viewsource-panel.deleteButton.tooltip"));
+    	deleteButton.setIcon(IconType.MINUS);
     	viewSourceNamesTable.setTitle(i18n.format("viewsource-panel.viewSourceNamesTable.tooltip"));
     }
     

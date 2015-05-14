@@ -187,6 +187,10 @@ public class CreateDataServiceScreen extends Composite {
 		if(!isOK) {
 			String resolveEntriesMsg = i18n.format("createdataservice.status-resolve-form-entries");
         	statusText.setHTML(UiUtils.getStatusMessageHtml(resolveEntriesMsg,UiUtils.MessageType.SUCCESS));
+        	this.viewEditorPanel.setVisible(false);
+        	this.createServiceButton.setVisible(false);
+		} else {
+			this.viewEditorPanel.setVisible(true);
 		}
     	
 		// Check for missing view DDL - if serviceName passed
@@ -201,8 +205,10 @@ public class CreateDataServiceScreen extends Composite {
     	if(isOK) {
         	statusText.setHTML(UiUtils.getStatusMessageHtml(statusClickCreate,UiUtils.MessageType.SUCCESS));
     		createServiceButton.setEnabled(true);
+    		createServiceButton.setVisible(true);
     	} else {
     		createServiceButton.setEnabled(false);
+    		createServiceButton.setVisible(false);
     	}
     }
 	

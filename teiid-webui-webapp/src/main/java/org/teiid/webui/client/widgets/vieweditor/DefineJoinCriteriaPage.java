@@ -24,6 +24,8 @@ import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
@@ -31,14 +33,12 @@ import org.teiid.webui.client.dialogs.UiEvent;
 import org.teiid.webui.client.dialogs.UiEventType;
 import org.teiid.webui.client.messages.ClientMessages;
 import org.teiid.webui.client.resources.AppResource;
-import org.teiid.webui.client.services.NotificationService;
 import org.teiid.webui.client.services.QueryRpcService;
 import org.teiid.webui.client.services.TeiidRpcService;
 import org.teiid.webui.client.utils.DdlHelper;
 import org.teiid.webui.client.widgets.CheckableNameTypeRow;
 import org.teiid.webui.client.widgets.ColumnNamesTable;
 import org.teiid.webui.share.Constants;
-import org.teiid.webui.share.services.StringUtils;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
@@ -46,7 +46,6 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.DOM;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
@@ -56,12 +55,13 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 
 @Dependent
 @Templated("./DefineJoinCriteriaPage.html")
+/**
+ * ViewEditor wizard page for definition of the join criteria
+ */
 public class DefineJoinCriteriaPage extends Composite {
 
     @Inject
     private ClientMessages i18n;
-    @Inject
-    private NotificationService notificationService;
     
     @Inject
     protected TeiidRpcService teiidService;
@@ -105,7 +105,6 @@ public class DefineJoinCriteriaPage extends Composite {
 	private String msgSelectRightJoinCriteria;
 	private String msgClickApplyWhenFinished;
 
-	private ViewEditorWizardPanel wizard;
     private String joinType = Constants.JOIN_TYPE_INNER;
     private String lhTableName;
     private String rhTableName;
@@ -119,6 +118,8 @@ public class DefineJoinCriteriaPage extends Composite {
 		RIGHT
 	}
 	
+	private ViewEditorManager editorManager = ViewEditorManager.getInstance();
+	   
     /**
      * Called after construction.
      */
@@ -205,17 +206,17 @@ public class DefineJoinCriteriaPage extends Composite {
     		}
     	});  
         
+    	setDdlButton.setIcon(IconType.ARROW_DOWN);
+
     }
     
     /**
-     * Used to update panel right before it is shown
+     * Refresh the panel using state from the ViewEditorManager
      */
     public void update() {
-    	ViewEditorManager viewEditor = ViewEditorManager.getInstance();
-
 		// Determine page number, set title
 		int pageNumber = 2;
-		int nTemplatePages = viewEditor.getNumberTablesRequiringTemplates();
+		int nTemplatePages = editorManager.getNumberTablesRequiringTemplates();
 		if(nTemplatePages==1) {
 			pageNumber = 3;
 		} else if(nTemplatePages==2) {
@@ -223,11 +224,11 @@ public class DefineJoinCriteriaPage extends Composite {
 		}
         titleLabel.setText(i18n.format("define-join-page.title", pageNumber));
     	
-    	List<CheckableNameTypeRow> lhsColumns = viewEditor.getColumns(0);
-    	List<CheckableNameTypeRow> rhsColumns = viewEditor.getColumns(1);
+    	List<CheckableNameTypeRow> lhsColumns = editorManager.getColumns(0);
+    	List<CheckableNameTypeRow> rhsColumns = editorManager.getColumns(1);
 
-    	setTable(Side.LEFT, lhsColumns, viewEditor);
-    	setTable(Side.RIGHT, rhsColumns, viewEditor);
+    	setTable(Side.LEFT, lhsColumns);
+    	setTable(Side.RIGHT, rhsColumns);
     	
 		updateStatus();
     }
@@ -237,10 +238,9 @@ public class DefineJoinCriteriaPage extends Composite {
      * @param wizard the wizard
      */
     public void setWizard(ViewEditorWizardPanel wizard) {
-    	this.wizard = wizard;
     }
     
-    public void setTable(Side side, List<CheckableNameTypeRow> colList, ViewEditorManager editorManager) {
+    public void setTable(Side side, List<CheckableNameTypeRow> colList) {
     	// Set table name and source name
     	if(side==Side.LEFT) {
     		lhTableName = editorManager.getTable(0);
@@ -411,14 +411,13 @@ public class DefineJoinCriteriaPage extends Composite {
     	String rhsTableName = getRHTable();
     	String jType = this.joinType;
     	
-    	ViewEditorManager editorManager = ViewEditorManager.getInstance();
     	// Gets either the table name or template SQL
     	String lhs = null;
     	String rhs = null;
     	if(editorManager.tableRequiresTemplate(0)) {
     		StringBuilder sb = new StringBuilder();
     		sb.append("(");
-    		sb.append(editorManager.getSourceTransformationSQL(0));
+    		sb.append(editorManager.getTemplateSQL(0));
     		sb.append(") AS A");
     		lhs = sb.toString();
     	} else {
@@ -428,7 +427,7 @@ public class DefineJoinCriteriaPage extends Composite {
     	if(editorManager.tableRequiresTemplate(1)) {
     		StringBuilder sb = new StringBuilder();
     		sb.append("(");
-    		sb.append(editorManager.getSourceTransformationSQL(1));
+    		sb.append(editorManager.getTemplateSQL(1));
     		sb.append(") AS B");
     		rhs = sb.toString();
     	} else {
