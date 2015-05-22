@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.teiid.webui.client.widgets;
+package org.teiid.webui.client.widgets.table;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.teiid.webui.client.widgets.table.SimpleTable;
 
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.cellview.client.TextColumn;
@@ -29,21 +28,21 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.SelectionModel;
 
 /**
- * Composite for display of DataSource names
+ * Composite for display of View Source names
  */
-public class DataSourceNamesTable extends Composite {
+public class ViewSourceNamesTable extends Composite {
 
-	private static String COLUMN_HEADER_NAME = "Sources";
-	private static int TABLE_HEIGHT_PX = 200;
+	private static String COLUMN_HEADER_NAME = "Required Sources";
+	private static int TABLE_HEIGHT_PX = 160;
 	private static int TABLE_WIDTH_PX = 250;
-	private static int TABLE_VISIBLE_ROWS = 7;
-
+	private static int TABLE_VISIBLE_ROWS = 4;
+	
     protected VerticalPanel panel = new VerticalPanel();
     protected Label label = new Label();
 
     private SimpleTable<String> table;
 
-    public DataSourceNamesTable() {
+    public ViewSourceNamesTable() {
         initWidget( panel );
         panel.add(createTablePanel());
     }
@@ -54,10 +53,6 @@ public class DataSourceNamesTable extends Composite {
      */
     protected Widget createTablePanel() {
     	table = new SimpleTable<String>(TABLE_HEIGHT_PX,TABLE_WIDTH_PX,TABLE_VISIBLE_ROWS);
-    	
-        // --------------
-    	// Name Column
-    	// --------------
         TextColumn<String> nameColumn = new TextColumn<String>() {
             public String getValue( String row ) {
                 return row;
@@ -79,7 +74,19 @@ public class DataSourceNamesTable extends Composite {
     	table.setRowData(rows);
     }
     
-    public List<String> getData() {
+    public void addData(List<String> rows) {
+    	List<String> currentRows = getData();
+    	List<String> newRows = new ArrayList<String>();
+    	newRows.addAll(currentRows);
+    	for(String row : rows) {
+    		if(!newRows.contains(row)) {
+    			newRows.add(row);
+    		}
+    	}
+    	table.setRowData(newRows);
+    }
+    
+    public List<String> getData( ) {
     	return table.getRowData();
     }
     

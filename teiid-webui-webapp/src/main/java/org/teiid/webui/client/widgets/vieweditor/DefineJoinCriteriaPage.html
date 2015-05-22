@@ -1,58 +1,41 @@
 <!DOCTYPE html>
 <div style="margin:8px">
   <div class="row">
-    <div class="col-sm-10">
-      <h4><label data-field="lbl-define-join-title" /></h4>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-10">
+    <div class="col-sm-9">
       <em><label data-field="lbl-define-join-message" /></em>
     </div>
   </div>
   <div class="row">
-    <div class="col-sm-1">
-    </div>
-    <div class="col-sm-7">
+    <div class="col-sm-6">
       <div class="row">
         <div class="col-sm-12">
           <div class="row">
             <div class="col-sm-5">
-              <label title="LHS Table" data-field="lbl-joineditor-lhsTableTitle" style="font-weight:bold"></label>
+              <label title="Left Table" data-field="lbl-joineditor-lhsTableTitle" style="font-weight:bold"></label>
               <div data-field="tbl-lhs-columns"></div>
             </div>
-            <div class="col-sm-1">
+            <div class="col-sm-2">
               <label><strong>Join Type</strong></label>
               <div data-field="btn-joineditor-togglePanel"></div>
             </div>
             <div class="col-sm-5">
-              <label title="RHS Table" data-field="lbl-joineditor-rhsTableTitle" style="font-weight:bold"></label>
+              <label title="Right Table" data-field="lbl-joineditor-rhsTableTitle" style="font-weight:bold"></label>
               <div data-field="tbl-rhs-columns"></div>
             </div>
-            <span class="col-sm-1"></span>
-          </div>
-          <div class="row">
-            <label><strong>Join Criteria</strong></label>
           </div>
           <div class="row">
             <div class="col-sm-5">
               <div data-field="listbox-lhcriteria" style="width:100%"></div>
             </div>
-            <div class="col-sm-1">
+            <div class="col-sm-2">
               <div><label><strong>&#61;</strong></label></div>
             </div>
             <div class="col-sm-5">
               <div data-field="listbox-rhcriteria" style="width:100%"></div>
             </div>
-            <div class="col-sm-1"></div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-sm-1">
-      <button data-field="btn-joineditor-setDdl" class="btn btn-primary">Replace</button>
     </div>
   </div>
 </div>

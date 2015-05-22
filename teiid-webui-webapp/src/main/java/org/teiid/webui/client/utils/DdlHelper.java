@@ -21,8 +21,6 @@ import java.util.List;
 import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.services.StringUtils;
 
-import com.google.gwt.user.client.Window;
-
 
 public class DdlHelper {
 
@@ -104,11 +102,12 @@ public class DdlHelper {
 		sb.append(getColWithTypeString(rhsColNames,rhsColTypes));
 		sb.append(") AS \nSELECT ");
 		sb.append(" ROW_NUMBER() OVER (ORDER BY ");
-		List<String> aliasedLhsColNames = getAliasedColNames(lhsColNames,"A");
-		sb.append(aliasedLhsColNames.get(0));
+		sb.append(getAliasedFirstColName(lhsColNames, "A", rhsColNames, "B"));
 		sb.append(") , ");
-		sb.append(getAliasedColString(lhsColNames,"A"));
-		sb.append(", ");
+		if(lhsColNames.size()>0) {
+			sb.append(getAliasedColString(lhsColNames,"A"));
+			sb.append(", ");
+		}
 		sb.append(getAliasedColString(rhsColNames,"B"));
 		sb.append(" \nFROM \n");
 		sb.append(lhs).append(" ");
@@ -128,6 +127,26 @@ public class DdlHelper {
 		sb.append(";");
 		
 		return sb.toString();
+	}
+	
+	/**
+	 * Returns the aliased first column name
+	 * @param lhsColNames the list of LHS column names
+	 * @param lhsAlias the LHS alias
+	 * @param rhsColNames the list of RHS column names
+	 * @param rhsAlias the RHS alias
+	 * @return the first column with alias
+	 */
+	private static String getAliasedFirstColName(List<String> lhsColNames, String lhsAlias, List<String> rhsColNames, String rhsAlias) {
+        String result = null;
+		if(lhsColNames.size()>0) {
+			List<String> aliasedLhsColNames = getAliasedColNames(lhsColNames,lhsAlias);
+			result = aliasedLhsColNames.get(0);
+		} else if(rhsColNames.size()>0) {
+			List<String> aliasedRhsColNames = getAliasedColNames(rhsColNames,rhsAlias);
+			result = aliasedRhsColNames.get(0);
+		}
+		return result;
 	}
 	
 	/**

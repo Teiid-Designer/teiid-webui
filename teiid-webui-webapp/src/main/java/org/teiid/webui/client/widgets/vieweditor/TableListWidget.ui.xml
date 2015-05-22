@@ -21,8 +21,8 @@
 
     <ui:style>
       .containerStyle {
-	    width:256px;
-        height:86px;
+	    width:260px;
+        height:60px;
         border:3px solid gray;
         margin-top:10px;
         margin-right:10px;
@@ -62,20 +62,16 @@
     </ui:style>
 	
 	<b:Container addStyleNames="{style.containerStyle}">
-	  <b:Row addStyleNames="{style.titleRowStyle}">
-        <b:Column size="SM_9" pull="LEFT" addStyleNames="{style.colLeftPadding}">
-          <b:Heading size="H5" ui:field="sourceNameText" addStyleNames="{style.nameTxtStyle}"></b:Heading>
-        </b:Column>
-        <b:Column size="SM_3" pull="RIGHT" addStyleNames="{style.colRightPadding}">
-          <b:Button type="PRIMARY" size="EXTRA_SMALL" pull="RIGHT" icon="TIMES" ui:field="removeTableButton"></b:Button>
-        </b:Column>
-	  </b:Row>
-	  <b:Row addStyleNames="{style.iconRowStyle}">
+	  <b:Row>
 	    <b:Column size="SM_4" pull="LEFT" addStyleNames="{style.colLeftPadding}">
           <b:Image pull="LEFT" ui:field="sourceTypeImage"></b:Image>
 	    </b:Column> 
-        <b:Column size="SM_8" pull="LEFT" addStyleNames="{style.colLeftPadding}">
+        <b:Column size="SM_6" pull="LEFT" addStyleNames="{style.colLeftPadding}">
+          <b:Heading size="H5" ui:field="sourceNameText" addStyleNames="{style.nameTxtStyle}"></b:Heading>
           <b:Heading size="H6" ui:field="tableNameText" addStyleNames="{style.descTxtStyle}"></b:Heading>
+        </b:Column>
+        <b:Column size="SM_2" pull="RIGHT" addStyleNames="{style.colRightPadding}">
+          <b:Button type="DEFAULT" size="EXTRA_SMALL" pull="RIGHT" icon="TIMES" ui:field="removeTableButton"></b:Button>
         </b:Column>
 	  </b:Row>
 	</b:Container>

@@ -36,7 +36,7 @@
           <t:ExtendedTextBox b:id="formGrp" ui:field="fgTextBox" />
         </b:Column>
         <b:Column size="SM_2" pull="LEFT" addStyleNames="{style.vertAlgn}">
-          <b:HelpBlock ui:field="fgHelpBlock" text="Enter text" />
+          <b:HelpBlock ui:field="fgHelpBlock" text="" />
         </b:Column>
 	  </b:Row>
 	</b:Container>

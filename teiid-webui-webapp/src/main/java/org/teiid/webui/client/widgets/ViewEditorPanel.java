@@ -26,6 +26,9 @@ import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.constants.IconPosition;
+import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
@@ -51,7 +54,6 @@ import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
@@ -59,6 +61,8 @@ import com.google.gwt.user.client.ui.TextArea;
 @Templated("./ViewEditorPanel.html")
 public class ViewEditorPanel extends Composite {
 
+	private static final String TEST_BUTTON_TEXT = "Test Service";
+	
 	private String serviceName = null;
 	private boolean haveSuccessfullyTested = false;
 	private String statusEnterName = null;
@@ -67,7 +71,6 @@ public class ViewEditorPanel extends Composite {
 	private String statusTestView = null;
 	private String queryResultDefaultMsg = null;
 	private String currentStatus = null;
-	private String owner;
 	//private List<String> availableSourceNames = new ArrayList<String>();
 	
     @Inject
@@ -88,9 +91,6 @@ public class ViewEditorPanel extends Composite {
     @Inject @DataField("label-vieweditor-description")
     protected Label viewEditorPanelDescription;
     
-    @Inject @DataField("btn-vieweditor-manage-sources")
-    protected Button manageSourceButton;
-    
     @Inject @DataField("textarea-vieweditor-viewDdl")
     protected ValidatingTextArea viewDdlTextArea;
     
@@ -103,7 +103,7 @@ public class ViewEditorPanel extends Composite {
     @Inject @DataField("btn-vieweditor-test")
     protected Button testViewButton;
     
-	private String workingDdl;
+    private String workingDdl;
 	private List<String> workingViewSrcNames;
 	
     @Inject Event<UiEvent> stateChangedEvent;
@@ -155,10 +155,13 @@ public class ViewEditorPanel extends Composite {
     	List<String> sList = new ArrayList<String>();
     	viewSourcePanel.setData(sList,sList);
     	
+    	testViewButton.setIcon(IconType.ANGLE_RIGHT);
+    	testViewButton.setIconPosition(IconPosition.RIGHT);
+    	testViewButton.setText(TEST_BUTTON_TEXT);
+		
     	// Tooltips
     	viewDdlTextArea.setTitle(i18n.format("vieweditor-panel.viewDdlTextArea.tooltip"));
     	testViewButton.setTitle(i18n.format("vieweditor-panel.testViewButton.tooltip"));
-    	manageSourceButton.setTitle(i18n.format("vieweditor-panel.manageSourceButton.tooltip"));
 
     	updateStatus();
     }
@@ -218,11 +221,7 @@ public class ViewEditorPanel extends Composite {
     }
 
     public void setOwner(String owner) {
-    	this.owner = owner;
-    }
-    
-    public String getOwner() {
-    	return this.owner;
+    	this.viewEditorWizardPanel.setOwner(owner);
     }
     
     /**
@@ -306,15 +305,6 @@ public class ViewEditorPanel extends Composite {
     @EventHandler("btn-vieweditor-test")
     public void onTestViewButtonClick(ClickEvent event) {
     	doTestView();
-    }
-    
-    /**
-     * Event handler that fires when the user clicks the Manage Sources button.
-     * @param event
-     */
-    @EventHandler("btn-vieweditor-manage-sources")
-    public void onManageSourcesButtonClick(ClickEvent event) {
-    	fireGoToManageSources();
     }
     
     private void doTestView() {
@@ -423,15 +413,6 @@ public class ViewEditorPanel extends Composite {
      */
     public void fireStateChanged( ) {
     	stateChangedEvent.fire(new UiEvent(UiEventType.VIEW_EDITOR_CHANGED));
-    }
-    
-    /**
-     * Fire go to manage soruces
-     */
-    public void fireGoToManageSources( ) {
-    	UiEvent event = new UiEvent(UiEventType.VIEW_EDITOR_GOTO_MANAGE_SOURCES);
-    	event.setEventSource(getOwner());
-    	stateChangedEvent.fire(event);
     }
     
 	private void updateStatus( ) {

@@ -23,21 +23,17 @@ import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.Icon;
+import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.webui.client.dialogs.UiEvent;
 import org.teiid.webui.client.dialogs.UiEventType;
-import org.teiid.webui.client.services.QueryRpcService;
-import org.teiid.webui.client.services.TeiidRpcService;
-import org.teiid.webui.share.Constants;
+import org.teiid.webui.client.messages.ClientMessages;
 
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
-import com.google.gwt.user.client.ui.HTMLPanel;
-import com.google.gwt.user.client.ui.VerticalPanel;
+import com.google.gwt.user.client.ui.Label;
 
 @Dependent
 @Templated("./SelectTablesPage.html")
@@ -47,21 +43,23 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public class SelectTablesPage extends Composite {
 
     @Inject
-    protected TeiidRpcService teiidService;
-    @Inject
-    protected QueryRpcService queryService;
+    private ClientMessages i18n;
     
     @Inject Event<UiEvent> setDdlEvent;
+    @Inject Event<UiEvent> uiEvent;
  
     @Inject @DataField("deckpanel")
     private DeckPanel leftDeckPanel;
     @Inject @DataField("listwidget-tableitem-panel")
     private TableFlowListWidget selectedTablesList;
-    
+    @Inject @DataField("lbl-number-selected-message")
+    private Label numberSelectedMsg;
+    @Inject @DataField("icon-info")
+    private Icon infoIcon;
+
     @Inject 
     private TableSelectorWidget tableSelector;
     
-    private String currentStatus = "";
     private ViewEditorWizardPanel wizard;
 
 	private ViewEditorManager editorManager = ViewEditorManager.getInstance();
@@ -71,23 +69,10 @@ public class SelectTablesPage extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
-        Button addButton = new Button("Add a Table");
-        // Add Button click swaps the Left DeckPanel to show selectors
-        addButton.addClickHandler( new ClickHandler() {
-			@Override
-			public void onClick( final ClickEvent event ) {
-				tableSelector.resetSourceSelection();
-		    	leftDeckPanel.showWidget(2);
-			}
-		} );
-        VerticalPanel buttonPanel = new VerticalPanel();
-        buttonPanel.add(addButton);
-        
-        HTMLPanel noMoreSourcesPanel = new HTMLPanel("<p>Proceed to next page, or remove table to replace it</p>");
-        
-    	// Add properties panel and Select label to deckPanel
-        leftDeckPanel.add(buttonPanel);
-        leftDeckPanel.add(noMoreSourcesPanel);
+    	numberSelectedMsg.setText(i18n.format("select-tables-page.nSelected.message",0));
+    	infoIcon.setType(IconType.INFO_CIRCLE);
+    	
+    	// Add table selector to deckpanel
         leftDeckPanel.add(tableSelector);
         leftDeckPanel.showWidget(0);
     }
@@ -102,21 +87,27 @@ public class SelectTablesPage extends Composite {
 
     	// Selected tables obtained from manager
     	List<TableListItem> selectedTables = editorManager.getTableItems();
-    	selectedTablesList.setItems(selectedTables);
+    	setListTables(selectedTables);
     	
-    	// Show message if two tables
-    	if(selectedTables.size()>=2) {
-    		leftDeckPanel.showWidget(1);
-    	// Show add button if less than two tables
-    	} else {
-    		leftDeckPanel.showWidget(0);
-    	}
+    	this.wizard.setWizardPageTitle(i18n.format("select-tables-page.title"));
     	
     	// Set next button enabled state
-    	if(selectedTables.isEmpty()) {
-    		this.wizard.setNextButtonEnabled(false);
+    	updateWizardButtons(editorManager);
+    	
+    	// Update the numberSelected message
+    	updateNumberSelectedMessage(editorManager);
+    }
+    
+    /**
+     * Update the number of selected message
+     * @param editorManager the editor manager
+     */
+    private void updateNumberSelectedMessage(ViewEditorManager editorManager) {
+    	int nTables = editorManager.getTables().size();
+    	if(nTables==1) {
+        	numberSelectedMsg.setText(i18n.format("select-tables-page.oneSelected.message"));
     	} else {
-    		this.wizard.setNextButtonEnabled(true);
+        	numberSelectedMsg.setText(i18n.format("select-tables-page.nSelected.message",nTables));
     	}
     }
     
@@ -126,35 +117,63 @@ public class SelectTablesPage extends Composite {
 	 */
     public void onUiEvent(@Observes UiEvent dEvent) {
     	// change received from viewEditor
-    	if(dEvent.getType() == UiEventType.REMOVE_TABLE) {
+    	if(dEvent.getType() == UiEventType.REMOVE_TABLE_FROM_LIST) {
         	TableListItem tableItem = dEvent.getRemoveTable();
         	int tableIndx = editorManager.getTableIndex(tableItem.getTableName());
         	if(tableIndx>=0) {
         		editorManager.removeTable(tableIndx);
         		List<TableListItem> newTables = editorManager.getTableItems();
-        		selectedTablesList.setItems(newTables);
+            	setListTables(newTables);
+            	// Refire so checklist can update
+            	fireRemoveTableEvent(tableItem);
         	}
-        	updateDeckPanelAndWizardButtons(editorManager);
+        	updateNumberSelectedMessage(editorManager);
+        	updateWizardButtons(editorManager);
     	} else if(dEvent.getType() == UiEventType.SET_TABLES) {
     		List<TableListItem> tableItems = dEvent.getNewTables();
-    		selectedTablesList.setItems(tableItems);
-        	updateDeckPanelAndWizardButtons(editorManager);
+        	setListTables(tableItems);
+        	updateNumberSelectedMessage(editorManager);
+        	updateWizardButtons(editorManager);
     	}
     }
     
-    private void updateDeckPanelAndWizardButtons(ViewEditorManager editorManager) {
-    	// Show message if two tables
-    	if(editorManager.getTables().size()>=2) {
-    		leftDeckPanel.showWidget(1);
-    	// Show add button if less than two tables
-    	} else {
-    		leftDeckPanel.showWidget(0);
+    /**
+     * Fire status event for a dataSource
+     * @param sourceName the source name
+     * @param sourceTableName the table name
+     */
+    private void fireRemoveTableEvent(TableListItem tableItem) {
+		UiEvent sEvent = new UiEvent(UiEventType.REMOVE_TABLE);
+		sEvent.setRemoveTable(tableItem);
+		uiEvent.fire(sEvent);
+    }
+    
+    /**
+     * Sets the list tables using the supplied manager tables.  Adds placeholder
+     * entries as needed and resets the table list
+     * @param managerTables the list of tables from the manager
+     */
+    private void setListTables(List<TableListItem> managerTables) {
+    	if(managerTables.size()==0) {
+    		TableListItem item1 = new TableListItem();
+    		item1.setPlaceHolder(true);
+    		TableListItem item2 = new TableListItem();
+    		item2.setPlaceHolder(true);
+    		managerTables.add(item1);
+    		managerTables.add(item2);
+    	} else if(managerTables.size()==1) {
+    		TableListItem item = new TableListItem();
+    		item.setPlaceHolder(true);
+    		managerTables.add(item);
     	}
-    	
+    	selectedTablesList.setItems(managerTables);
+    }
+    
+    private void updateWizardButtons(ViewEditorManager editorManager) {
     	if(editorManager.getTables().size()>0) {
-    		wizard.setNextButtonEnabled(true);
+    		wizard.setNextOrReplaceButton(true);
     	} else {
-    		wizard.setNextButtonEnabled(false);
+    		wizard.setNextOrReplaceButton(false);
     	}
     }
     
@@ -179,26 +198,21 @@ public class SelectTablesPage extends Composite {
      * Update panel status
      */
 	private void updateStatus( ) {
-    	currentStatus = Constants.OK;
+    	boolean okToProceed = true;;
     	
     	// Ensure at least one table is selected
-    	List<String> selectedTables = editorManager.getTables();
-    	if(selectedTables.isEmpty()) {
-    		currentStatus = "Select at least one table";
+    	List<TableListItem> selectedTables = editorManager.getTableItems();
+    	if(selectedTables.size()==0) {
+    		okToProceed = false;
     	}
     	
 		// Enable setDdlButton button if OK
-    	if(Constants.OK.equals(currentStatus)) {
-    		this.wizard.setNextButtonEnabled(true);
+    	if(okToProceed) {
+    		this.wizard.setNextOrReplaceButton(true);
     	} else {
-    		this.wizard.setNextButtonEnabled(false);
+    		this.wizard.setNextOrReplaceButton(false);
     	}
 
     }
-	
-	public String getStatus() {
-		return this.currentStatus;
-	}
-
            
 }

@@ -29,6 +29,7 @@ import org.teiid.webui.client.dialogs.UiEvent;
 import org.teiid.webui.client.dialogs.UiEventType;
 import org.teiid.webui.client.messages.ClientMessages;
 import org.teiid.webui.client.resources.ImageHelper;
+import org.teiid.webui.share.Constants;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
@@ -90,7 +91,7 @@ public class TableListWidget extends Composite implements HasModel<TableListItem
         });
 
     	// Tooltips
-    	removeTableButton.setTitle(i18n.format("lib-service-widget.viewServiceButton.tooltip"));
+    	removeTableButton.setTitle(i18n.format("table-list-widget.remove-button.tooltip"));
     }
     
 	public TableListItem getModel() {
@@ -100,17 +101,26 @@ public class TableListWidget extends Composite implements HasModel<TableListItem
 	public void setModel(TableListItem service) {
 		serviceBinder.setModel(service);
 		
-		// Set data source name
-		String srcName = getModel().getSourceName();
-		this.sourceNameText.setText(srcName);
-		
-		// Set table name
-		String tableName = getModel().getTableName();
-		this.tableNameText.setText(tableName);
-		
-		// Source Image
-		ImageResource srcImage = ImageHelper.getInstance().getDataSourceSmallImageForType(getModel().getType());
-		this.sourceTypeImage.setResource(srcImage);
+		if(getModel().isPlaceHolder()) {
+			this.sourceNameText.setText(Constants.BLANK);
+			this.tableNameText.setText(Constants.BLANK);
+			this.sourceTypeImage=null;
+			this.removeTableButton.setVisible(false);
+		} else {
+			// Set data source name
+			String srcName = getModel().getSourceName();
+			this.sourceNameText.setText(srcName);
+
+			// Set table name
+			String tableName = getModel().getTableName();
+			this.tableNameText.setText(tableName);
+
+			// Source Image
+			ImageResource srcImage = ImageHelper.getInstance().getDataSourceSmallImageForType(getModel().getType());
+			this.sourceTypeImage.setResource(srcImage);
+			
+			this.removeTableButton.setVisible(true);
+		}
 	}
 	
     
@@ -120,7 +130,7 @@ public class TableListWidget extends Composite implements HasModel<TableListItem
      * @param sourceTableName the table name
      */
     private void fireRemoveTableEvent(String sourceName, String sourceTableName) {
-		UiEvent sEvent = new UiEvent(UiEventType.REMOVE_TABLE);
+		UiEvent sEvent = new UiEvent(UiEventType.REMOVE_TABLE_FROM_LIST);
 		TableListItem tableItem = new TableListItem();
 		tableItem.setSourceName(sourceName);
 		tableItem.setTableName(sourceTableName);

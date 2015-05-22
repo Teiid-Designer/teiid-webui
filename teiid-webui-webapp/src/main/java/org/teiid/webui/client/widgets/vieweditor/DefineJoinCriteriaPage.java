@@ -24,20 +24,15 @@ import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import org.gwtbootstrap3.client.ui.Button;
-import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
-import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.webui.client.dialogs.UiEvent;
 import org.teiid.webui.client.dialogs.UiEventType;
 import org.teiid.webui.client.messages.ClientMessages;
 import org.teiid.webui.client.resources.AppResource;
-import org.teiid.webui.client.services.QueryRpcService;
-import org.teiid.webui.client.services.TeiidRpcService;
 import org.teiid.webui.client.utils.DdlHelper;
 import org.teiid.webui.client.widgets.CheckableNameTypeRow;
-import org.teiid.webui.client.widgets.ColumnNamesTable;
+import org.teiid.webui.client.widgets.table.ColumnNamesTable;
 import org.teiid.webui.share.Constants;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
@@ -63,15 +58,8 @@ public class DefineJoinCriteriaPage extends Composite {
     @Inject
     private ClientMessages i18n;
     
-    @Inject
-    protected TeiidRpcService teiidService;
-    @Inject
-    protected QueryRpcService queryService;
-    
     @Inject Event<UiEvent> setDdlEvent;
     
-    @Inject @DataField("lbl-define-join-title")
-    protected Label titleLabel;
     @Inject @DataField("lbl-define-join-message")
     protected Label messageLabel;
     @Inject @DataField("lbl-joineditor-lhsTableTitle")
@@ -83,8 +71,6 @@ public class DefineJoinCriteriaPage extends Composite {
     private ColumnNamesTable lhsJoinTable;
     @Inject @DataField("tbl-rhs-columns")
     private ColumnNamesTable rhsJoinTable;
-    @Inject @DataField("btn-joineditor-setDdl")
-    protected Button setDdlButton;
     
     @Inject @DataField("btn-joineditor-togglePanel")
     protected VerticalPanel togglePanel;
@@ -105,7 +91,6 @@ public class DefineJoinCriteriaPage extends Composite {
 	private String msgSelectRightJoinCriteria;
 	private String msgClickApplyWhenFinished;
 
-    private String joinType = Constants.JOIN_TYPE_INNER;
     private String lhTableName;
     private String rhTableName;
     private String lhTableSource;
@@ -119,30 +104,34 @@ public class DefineJoinCriteriaPage extends Composite {
 	}
 	
 	private ViewEditorManager editorManager = ViewEditorManager.getInstance();
-	   
+	private ViewEditorWizardPanel wizard;
+	
     /**
      * Called after construction.
      */
     @PostConstruct
     protected void postConstruct() {
     	AppResource.INSTANCE.css().joinToggleStyle().ensureInjected();
+
+    	lhsJoinTable.setOwner(this.getClass().getName());
+    	rhsJoinTable.setOwner(this.getClass().getName());
     	
-    	msgCheckOneOrMoreColumns = i18n.format("joineditor.check-one-or-more-columns.message");
-    	msgSelectLeftJoinCriteria = i18n.format("joineditor.select-left-join-criteria.message");
-    	msgSelectRightJoinCriteria= i18n.format("joineditor.select-right-join-criteria.message");
-    	msgClickApplyWhenFinished = i18n.format("joineditor.click-apply-when-finished.message");
+    	msgCheckOneOrMoreColumns = i18n.format("define-join-criteria-page.check-one-or-more-columns.message");
+    	msgSelectLeftJoinCriteria = i18n.format("define-join-criteria-page.select-left-join-criteria.message");
+    	msgSelectRightJoinCriteria= i18n.format("define-join-criteria-page.select-right-join-criteria.message");
+    	msgClickApplyWhenFinished = i18n.format("define-join-criteria-page.click-apply-when-finished.message");
   	  
-    	lhsTableTitleLabel.setText(i18n.format("joineditor.lhs-table.title"));
-    	rhsTableTitleLabel.setText(i18n.format("joineditor.rhs-table.title"));
+    	lhsTableTitleLabel.setText(i18n.format("define-join-criteria-page.lhs-table.title"));
+    	rhsTableTitleLabel.setText(i18n.format("define-join-criteria-page.rhs-table.title"));
     	
     	joinInnerButton = new ToggleButton(new Image(AppResource.INSTANCE.images().joinInner_Image()));
         joinLeftOuterButton = new ToggleButton(new Image(AppResource.INSTANCE.images().joinLeftOuter_Image()));
         joinRightOuterButton = new ToggleButton(new Image(AppResource.INSTANCE.images().joinRightOuter_Image()));
         joinFullOuterButton = new ToggleButton(new Image(AppResource.INSTANCE.images().joinFullOuter_Image()));
-        joinInnerButton.setTitle(i18n.format("joineditor.inner-join.tooltip"));
-        joinLeftOuterButton.setTitle(i18n.format("joineditor.left-outer-join.tooltip"));
-        joinRightOuterButton.setTitle(i18n.format("joineditor.right-outer-join.tooltip"));
-        joinFullOuterButton.setTitle(i18n.format("joineditor.full-outer-join.tooltip"));
+        joinInnerButton.setTitle(i18n.format("define-join-criteria-page.inner-join.tooltip"));
+        joinLeftOuterButton.setTitle(i18n.format("define-join-criteria-page.left-outer-join.tooltip"));
+        joinRightOuterButton.setTitle(i18n.format("define-join-criteria-page.right-outer-join.tooltip"));
+        joinFullOuterButton.setTitle(i18n.format("define-join-criteria-page.full-outer-join.tooltip"));
         joinInnerButton.setStylePrimaryName("joinToggle");
         joinLeftOuterButton.setStylePrimaryName("joinToggle");
         joinRightOuterButton.setStylePrimaryName("joinToggle");
@@ -163,50 +152,32 @@ public class DefineJoinCriteriaPage extends Composite {
         togglePanel.add(joinFullOuterButton);
         
         // Default to inner join
-        joinInnerButton.setValue(true);
-        joinLeftOuterButton.setValue(false);
-        joinRightOuterButton.setValue(false);
-        joinFullOuterButton.setValue(false);
-        joinType=Constants.JOIN_TYPE_INNER;
+        setJoinButtonSelection(Constants.JOIN_TYPE_INNER);
         
         joinInnerButton.addClickHandler(new ClickHandler() {
     		public void onClick(ClickEvent event) {
-    			joinType=Constants.JOIN_TYPE_INNER;
-    			joinInnerButton.setValue(true);
-    			joinLeftOuterButton.setValue(false);
-    			joinRightOuterButton.setValue(false);
-    			joinFullOuterButton.setValue(false);
+        		setJoinButtonStates(true,false,false,false);
+    			editorManager.setJoinType(Constants.JOIN_TYPE_INNER);
     		}
     	});                	
         joinLeftOuterButton.addClickHandler(new ClickHandler() {
     		public void onClick(ClickEvent event) {
-    			joinType=Constants.JOIN_TYPE_LEFT_OUTER;
-    			joinInnerButton.setValue(false);
-    			joinLeftOuterButton.setValue(true);
-    			joinRightOuterButton.setValue(false);
-    			joinFullOuterButton.setValue(false);
+        		setJoinButtonStates(false,true,false,false);
+    			editorManager.setJoinType(Constants.JOIN_TYPE_LEFT_OUTER);
     		}
     	});                	
         joinRightOuterButton.addClickHandler(new ClickHandler() {
     		public void onClick(ClickEvent event) {
-    			joinType=Constants.JOIN_TYPE_RIGHT_OUTER;
-    			joinInnerButton.setValue(false);
-    			joinLeftOuterButton.setValue(false);
-    			joinRightOuterButton.setValue(true);
-    			joinFullOuterButton.setValue(false);
+        		setJoinButtonStates(false,false,true,false);
+    			editorManager.setJoinType(Constants.JOIN_TYPE_RIGHT_OUTER);
     		}
     	});                	
         joinFullOuterButton.addClickHandler(new ClickHandler() {
     		public void onClick(ClickEvent event) {
-    			joinType=Constants.JOIN_TYPE_FULL_OUTER;
-    			joinInnerButton.setValue(false);
-    			joinLeftOuterButton.setValue(false);
-    			joinRightOuterButton.setValue(false);
-    			joinFullOuterButton.setValue(true);
+        		setJoinButtonStates(false,false,false,true);
+    			editorManager.setJoinType(Constants.JOIN_TYPE_FULL_OUTER);
     		}
     	});  
-        
-    	setDdlButton.setIcon(IconType.ARROW_DOWN);
 
     }
     
@@ -222,13 +193,20 @@ public class DefineJoinCriteriaPage extends Composite {
 		} else if(nTemplatePages==2) {
 			pageNumber = 4;
 		}
-        titleLabel.setText(i18n.format("define-join-page.title", pageNumber));
+    	this.wizard.setWizardPageTitle(i18n.format("define-join-page.title", pageNumber));
     	
     	List<CheckableNameTypeRow> lhsColumns = editorManager.getColumns(0);
     	List<CheckableNameTypeRow> rhsColumns = editorManager.getColumns(1);
 
     	setTable(Side.LEFT, lhsColumns);
     	setTable(Side.RIGHT, rhsColumns);
+    	
+    	String lhCriteriaCol = editorManager.getJoinColumn(0);
+    	String rhCriteriaCol = editorManager.getJoinColumn(1);
+    	setLHCriteriaSelection(lhCriteriaCol);
+    	setRHCriteriaSelection(rhCriteriaCol);
+    	
+    	setJoinButtonSelection(editorManager.getJoinType());
     	
 		updateStatus();
     }
@@ -238,8 +216,14 @@ public class DefineJoinCriteriaPage extends Composite {
      * @param wizard the wizard
      */
     public void setWizard(ViewEditorWizardPanel wizard) {
+    	this.wizard = wizard;
     }
     
+    /**
+     * Set the Columns table rows for the specified table.
+     * @param side the left or right table side
+     * @param colList the list of column rows
+     */
     public void setTable(Side side, List<CheckableNameTypeRow> colList) {
     	// Set table name and source name
     	if(side==Side.LEFT) {
@@ -253,10 +237,10 @@ public class DefineJoinCriteriaPage extends Composite {
     	// Set table data and title
 		if(side==Side.LEFT) {
 			if(colList!=null) lhsJoinTable.setData(colList);
-	    	lhsTableTitleLabel.setText("LHS (" + lhTableName + ")");
+	    	lhsTableTitleLabel.setText( lhTableName );
 		} else if (side==Side.RIGHT) {
 			if(colList!=null) rhsJoinTable.setData(colList);
-	    	rhsTableTitleLabel.setText("RHS (" + rhTableName + ")");
+	    	rhsTableTitleLabel.setText( rhTableName );
 		}
 		
 		// Set the criteria listbox
@@ -267,6 +251,30 @@ public class DefineJoinCriteriaPage extends Composite {
 			}
 			populateCriteriaListBox(side, colNames);
 		}
+    }
+    
+    /**
+     * Sets the join button selection
+     * @param joinType the join type
+     */
+    private void setJoinButtonSelection(String joinType) {
+    	if(joinType.equals(Constants.JOIN_TYPE_INNER)) {
+    		setJoinButtonStates(true,false,false,false);
+    	} else if(joinType.equals(Constants.JOIN_TYPE_LEFT_OUTER)) {
+    		setJoinButtonStates(false,true,false,false);
+    	} else if(joinType.equals(Constants.JOIN_TYPE_RIGHT_OUTER)) {
+    		setJoinButtonStates(false,false,true,false);
+    	} else if(joinType.equals(Constants.JOIN_TYPE_FULL_OUTER)) {
+    		setJoinButtonStates(false,false,false,true);
+    	}
+    }
+    
+    private void setJoinButtonStates(boolean innerState, boolean leftOuterStatus, 
+    		                         boolean rightOuterState, boolean fullOuterState) {
+        joinInnerButton.setValue(innerState);
+        joinLeftOuterButton.setValue(leftOuterStatus);
+        joinRightOuterButton.setValue(rightOuterState);
+        joinFullOuterButton.setValue(fullOuterState);
     }
 
     /**
@@ -307,18 +315,31 @@ public class DefineJoinCriteriaPage extends Composite {
     	// Initialize by setting the selection to the first item.
     	criteriaListBox.setSelectedIndex(0);
     	
-    	// Add the change handler for status updates
-        ChangeHandler criteriaChangeHandler = new ChangeHandler()
-        {
-        	// Changing the updates status
-        	public void onChange(ChangeEvent event)
-        	{
-        		updateStatus();
-        	}
-        };
         if(side==Side.LEFT) {
+        	// Add the change handler for status updates
+            ChangeHandler criteriaChangeHandler = new ChangeHandler()
+            {
+            	// Changing the updates status
+            	public void onChange(ChangeEvent event)
+            	{
+            		String sel = getLHCriteriaSelection();
+            		editorManager.setJoinColumn(0, sel);
+            		updateStatus();
+            	}
+            };
         	lhCriteriaHandlerRegistration = criteriaListBox.addChangeHandler(criteriaChangeHandler);
         } else {
+        	// Add the change handler for status updates
+            ChangeHandler criteriaChangeHandler = new ChangeHandler()
+            {
+            	// Changing the updates status
+            	public void onChange(ChangeEvent event)
+            	{
+            		String sel = getRHCriteriaSelection();
+            		editorManager.setJoinColumn(1, sel);
+            		updateStatus();
+            	}
+            };
         	rhCriteriaHandlerRegistration = criteriaListBox.addChangeHandler(criteriaChangeHandler);
         }
     }
@@ -375,12 +396,10 @@ public class DefineJoinCriteriaPage extends Composite {
 		rhCriteriaListBox.setSelectedIndex(indx);
 	}
 
-	/**
-     * Event handler that fires when the user clicks the Add to view defn button.
-     * @param event
+    /**
+     * Handler for Replace DDL button click.
      */
-    @EventHandler("btn-joineditor-setDdl")
-    public void onSetDdlButtonClick(ClickEvent event) {
+    public void replaceDdlClicked( ) {
     	String ddl = buildDdl();
     	
 		UiEvent uiEvent = new UiEvent(UiEventType.VIEW_DEFN_REPLACE_FROM_JOIN_EDITOR);
@@ -409,7 +428,7 @@ public class DefineJoinCriteriaPage extends Composite {
     	String rhsCriteriaCol = getRHCriteriaSelection();
     	String lhsTableName = getLHTable();
     	String rhsTableName = getRHTable();
-    	String jType = this.joinType;
+    	String jType = editorManager.getJoinType();
     	
     	// Gets either the table name or template SQL
     	String lhs = null;
@@ -447,20 +466,47 @@ public class DefineJoinCriteriaPage extends Composite {
      */
     public void onUiEvent(@Observes UiEvent dEvent) {
     	// checkbox change event from column names table
-    	if(dEvent.getType() == UiEventType.COLUMN_NAME_TABLE_CHECKBOX_CHANGED) {
+    	if(dEvent.getType() == UiEventType.COLUMN_NAME_TABLE_CHECKBOX_CHANGED && dEvent.getEventSource().equals(this.getClass().getName())) {
+    		List<String> lhsCols = lhsJoinTable.getSelectedColumnNames();
+    		List<String> rhsCols = rhsJoinTable.getSelectedColumnNames();
+    		List<String> lhsColTypes = lhsJoinTable.getSelectedColumnTypes();
+    		List<String> rhsColTypes = rhsJoinTable.getSelectedColumnTypes();
+    		editorManager.setSelectedColumns(0, lhsCols);
+    		editorManager.setSelectedColumns(1, rhsCols);
+    		editorManager.setSelectedColumnTypes(0, lhsColTypes);
+    		editorManager.setSelectedColumnTypes(1, rhsColTypes);
     		updateStatus();
     	}
     }
     
+    /**
+     * Get the Left table name
+     * @return the left table name
+     */
     public String getLHTable() {
     	return this.lhTableName;
     }
+
+    /**
+     * Get the Right table name
+     * @return the right table name
+     */
     public String getRHTable() {
     	return this.rhTableName;
     }
+
+    /**
+     * Get the Left table data source
+     * @return the left table source
+     */
     public String getLHTableSource() {
     	return this.lhTableSource;
     }
+    
+    /**
+     * Get the Right table data source
+     * @return the right table source
+     */
     public String getRHTableSource() {
     	return this.rhTableSource;
     }
@@ -473,9 +519,11 @@ public class DefineJoinCriteriaPage extends Composite {
     	
 		// Ensure some columns are selected
     	if(Constants.OK.equals(currentStatus)) {
-    		List<String> selectedLHColumns = lhsJoinTable.getSelectedColumnNames();
-    		List<String> selectedRHColumns = rhsJoinTable.getSelectedColumnNames();
-    		if(selectedLHColumns.isEmpty() && selectedRHColumns.isEmpty()) {
+    		List<String> selectedLHColumns = editorManager.getSelectedColumns(0);
+    		List<String> selectedRHColumns = editorManager.getSelectedColumns(1);
+    		int nLHS = (selectedLHColumns==null) ? 0 : selectedLHColumns.size();
+    		int nRHS = (selectedRHColumns==null) ? 0 : selectedRHColumns.size();
+    		if(nLHS + nRHS == 0) {
     			currentStatus = msgCheckOneOrMoreColumns;
     		}
     	}
@@ -499,14 +547,18 @@ public class DefineJoinCriteriaPage extends Composite {
 		// Enable setDdlButton button if OK
     	if(Constants.OK.equals(currentStatus)) {
     		messageLabel.setText(msgClickApplyWhenFinished);
-    		setDdlButton.setEnabled(true);
+    		this.wizard.setNextOrReplaceButton(true);
     	} else {
     		messageLabel.setText(currentStatus);
-    		setDdlButton.setEnabled(false);
+    		this.wizard.setNextOrReplaceButton(false);
     	}
 
     }
 	
+	/**
+	 * Get the panel status
+	 * @return the status
+	 */
 	public String getStatus() {
 		return this.currentStatus;
 	}

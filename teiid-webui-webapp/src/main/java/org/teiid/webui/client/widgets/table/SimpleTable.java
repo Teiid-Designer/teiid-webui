@@ -235,9 +235,13 @@ public class SimpleTable<T>
                                               forceRangeChangeEvent );
     }
 
+    public void addColumn( final Column<T, ?> column ) {
+    	dataGrid.addColumn( column );
+    }
+    
     public void addColumn( final Column<T, ?> column,
-                           final String caption ) {
-        dataGrid.addColumn( column, caption);
+    		final String caption ) {
+    	dataGrid.addColumn( column, caption);
     }
     
     public void addColumn(Column<T, ?> col, Header<?> header) {

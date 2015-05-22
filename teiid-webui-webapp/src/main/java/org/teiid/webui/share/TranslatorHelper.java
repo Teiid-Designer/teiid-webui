@@ -82,6 +82,7 @@ public class TranslatorHelper {
 	public static final String MYSQL = "mysql"; //$NON-NLS-1$
 	public static final String MYSQL5 = "mysql5"; //$NON-NLS-1$
 	public static final String NETEZZA = "netezza"; //$NON-NLS-1$
+	public static final String ODATA = "odata"; //$NON-NLS-1$
 	public static final String OLAP = "olap"; //$NON-NLS-1$
 	public static final String ORACLE = "oracle"; //$NON-NLS-1$
 	// NOTE: For PostgreSQL vendor leaves off the QL, so we need to be careful to map this correctly
@@ -109,6 +110,9 @@ public class TranslatorHelper {
 	public static final String URL_H2 = "jdbc:h2:file:<fileLocation>"; //$NON-NLS-1$
     public static final String URL_SAP_HANA = "jdbc:sap://<host>:<port>"; //$NON-NLS-1$
 
+    public static final String TEIID_WEBSERVICE_PROC = "invokeHttp"; //$NON-NLS-1$
+    public static final String TEIID_FILE_PROC = "getTextFiles"; //$NON-NLS-1$
+    
 	/**
 	 * Get the best fit translator, given the driverName and list of translator names
 	 * @param driverName the driver name

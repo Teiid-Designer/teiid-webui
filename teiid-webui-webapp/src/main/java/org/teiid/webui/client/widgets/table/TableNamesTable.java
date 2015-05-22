@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.teiid.webui.client.widgets;
+package org.teiid.webui.client.widgets.table;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,7 +24,7 @@ import javax.inject.Inject;
 
 import org.teiid.webui.client.dialogs.UiEvent;
 import org.teiid.webui.client.dialogs.UiEventType;
-import org.teiid.webui.client.widgets.table.SimpleTable;
+import org.teiid.webui.client.widgets.CheckableNameTypeRow;
 import org.teiid.webui.share.Constants;
 
 import com.google.gwt.cell.client.Cell.Context;
@@ -44,15 +44,16 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.SelectionModel;
 
 /**
- * Composite for display of Column names
+ * Composite for display of Table names.  Contains checkboxes next to the rows which fire event
+ * when the checkbox state is changed.
  */
-public class ColumnNamesTable extends Composite {
+public class TableNamesTable extends Composite {
 
 	@Inject Event<UiEvent> uiEvent;
 	
-	private static String COLUMN_HEADER_NAME = "Columns";
+	private static String COLUMN_HEADER_NAME = "Tables";
 	private static int TABLE_HEIGHT_PX = 200;
-	private static int TABLE_WIDTH_PX = 250;
+	private static int TABLE_WIDTH_PX = 280;
 	private static int TABLE_VISIBLE_ROWS = 7;
 
     protected VerticalPanel panel = new VerticalPanel();
@@ -60,10 +61,48 @@ public class ColumnNamesTable extends Composite {
 
     private SimpleTable<CheckableNameTypeRow> table;
     private CheckboxHeader cbHeader;
-
-    public ColumnNamesTable() {
+    private String owner;
+    private boolean showHeader = true;
+    private boolean disableUncheckedRows = false;
+    private DisableableCheckboxCell checkboxCell = new DisableableCheckboxCell(this.disableUncheckedRows,true,false);
+    private Widget tablePanel;
+    
+    public TableNamesTable( ) {
         initWidget( panel );
-        panel.add(createTablePanel());
+        tablePanel = createTablePanel();
+        panel.add(tablePanel);
+    }
+    
+    public void setOwner(String owner) {
+    	this.owner = owner;
+    }
+    
+    public void setShowHeader(boolean showHeader) {
+    	if(showHeader!=this.showHeader) {
+    		this.showHeader = showHeader;
+    		
+    		// Remove current table
+    		panel.remove(tablePanel);
+    		
+    		// Re-init
+    		tablePanel = createTablePanel();
+    		panel.add(tablePanel);
+    	}
+    }
+    
+    public void setDisableUncheckedRows(boolean disableUnchecked) {
+    	this.checkboxCell.setDisableIfUnchecked(disableUnchecked);
+    	table.redraw();
+    }
+    
+    public void setCheckedState(String tableName, boolean isChecked) {
+    	List<CheckableNameTypeRow> rows = table.getRowData();
+    	for(CheckableNameTypeRow row : rows) {
+    		if(row.getName().equalsIgnoreCase(tableName)) {
+    			row.setChecked(isChecked);
+    			break;
+    		}
+    	}
     }
     
     /**
@@ -74,7 +113,7 @@ public class ColumnNamesTable extends Composite {
     	table = new SimpleTable<CheckableNameTypeRow>(TABLE_HEIGHT_PX,TABLE_WIDTH_PX,TABLE_VISIBLE_ROWS);
     	
         // Add Checkbox column
-    	Column<CheckableNameTypeRow, Boolean> checkboxColumn= new Column<CheckableNameTypeRow, Boolean>(new CheckboxCell(true,false))
+    	Column<CheckableNameTypeRow, Boolean> checkboxColumn = new Column<CheckableNameTypeRow, Boolean>(checkboxCell)
     			{
     		@Override
     		public Boolean getValue(CheckableNameTypeRow object)
@@ -108,14 +147,18 @@ public class ColumnNamesTable extends Composite {
             		cbHeader.setValue(false);
             	}
         		table.redrawHeaders();
-        		fireCheckboxEvent();
+       			fireCheckboxEvent(object.getName(),value);
     	    }
     	});
 
     	// Checkbox Header
         cbHeader = createCBHeader(false);
 
-        table.addColumn(checkboxColumn, cbHeader);
+        if(showHeader) {
+        	table.addColumn(checkboxColumn, cbHeader);
+        } else {
+            table.addColumn(checkboxColumn);
+        }
     	table.setColumnWidth(checkboxColumn, 40, Unit.PX);
     		        
         // --------------
@@ -126,19 +169,31 @@ public class ColumnNamesTable extends Composite {
                 return row.getName();
             }
         };
-        table.addColumn( nameColumn, COLUMN_HEADER_NAME );
+        if(showHeader) {
+            table.addColumn( nameColumn, COLUMN_HEADER_NAME );
+        } else {
+            table.addColumn( nameColumn );
+        }
         table.setColumnWidth(nameColumn, 200, Unit.PX);
         
         VerticalPanel verticalPanel = new VerticalPanel();
         verticalPanel.add(table);
         return verticalPanel;
     }
-    
+
 	/*
-	 * Fires Ui event when any checkbox state changes
+	 * Fires Ui event when a table checkbox is checked or unchecked
 	 */
-	private void fireCheckboxEvent() {
-		uiEvent.fire(new UiEvent(UiEventType.COLUMN_NAME_TABLE_CHECKBOX_CHANGED));
+	private void fireCheckboxEvent(String tableName,boolean isChecked) {
+		UiEvent theEvent = null;
+		if(isChecked) {
+			theEvent = new UiEvent(UiEventType.TABLE_NAME_TABLE_CHECKBOX_CHECKED);
+		} else {
+			theEvent = new UiEvent(UiEventType.TABLE_NAME_TABLE_CHECKBOX_UNCHECKED);
+		}
+		theEvent.setEventSource(this.owner);
+		theEvent.setTableName(tableName);
+		uiEvent.fire(theEvent);
 	}
     
     private CheckboxHeader createCBHeader(boolean isChecked) {
@@ -149,7 +204,9 @@ public class ColumnNamesTable extends Composite {
     			for(CheckableNameTypeRow aRow : tableRows) {
     				aRow.setChecked(checkState);
     			}
-    			uiEvent.fire(new UiEvent(UiEventType.COLUMN_NAME_TABLE_CHECKBOX_CHANGED));
+    			UiEvent theEvent = new UiEvent(UiEventType.TABLE_NAME_TABLE_CHECKBOX_CHECKED);
+    			theEvent.setEventSource(owner);
+    			uiEvent.fire(theEvent);
     			table.redraw();
     		}
     	};
@@ -176,7 +233,7 @@ public class ColumnNamesTable extends Composite {
     	return sb.toString();
     }
     
-    public List<String> getSelectedColumnNames() {
+    public List<String> getSelectedTableNames() {
     	List<String> colNames = new ArrayList<String>();
     	
     	List<CheckableNameTypeRow> rows = table.getRowData();
@@ -188,7 +245,7 @@ public class ColumnNamesTable extends Composite {
     	
     	return colNames;
     }
-    public List<String> getSelectedColumnTypes() {
+    public List<String> getSelectedTableTypes() {
     	List<String> colTypes = new ArrayList<String>();
     	
     	List<CheckableNameTypeRow> rows = table.getRowData();

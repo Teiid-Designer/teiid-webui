@@ -20,22 +20,18 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import org.gwtbootstrap3.client.ui.Button;
-import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
-import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.webui.client.dialogs.UiEvent;
 import org.teiid.webui.client.dialogs.UiEventType;
 import org.teiid.webui.client.messages.ClientMessages;
-import org.teiid.webui.client.services.QueryRpcService;
-import org.teiid.webui.client.services.TeiidRpcService;
 import org.teiid.webui.client.widgets.CheckableNameTypeRow;
-import org.teiid.webui.client.widgets.ColumnNamesTable;
+import org.teiid.webui.client.widgets.table.ColumnNamesTable;
+import org.teiid.webui.share.Constants;
 
-import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
@@ -52,35 +48,33 @@ public class SelectTableColumnsPage extends Composite {
     
     @Inject Event<UiEvent> setDdlEvent;
     
-    @Inject
-    protected TeiidRpcService teiidService;
-    @Inject
-    protected QueryRpcService queryService;
-    
-    @Inject @DataField("lbl-table-columns-title")
-    protected Label titleLabel;
     @Inject @DataField("lbl-table-columns-message")
     protected Label messageLabel;
     @Inject @DataField("lbl-table-title")
     protected Label tableTitleLabel;
     @Inject @DataField("tbl-table-columns")
     protected ColumnNamesTable columnsTable;
-    @Inject @DataField("btn-table-columns-createDdl")
-    private Button replaceDdlButton;
     
+	private ViewEditorWizardPanel wizard;
 	private ViewEditorManager editorManager = ViewEditorManager.getInstance();
+	private String currentStatus = Constants.BLANK;
+	private String msgCheckOneOrMoreColumns;
+	private String msgClickApplyWhenFinished;
 	   
    /**
      * Called after construction.
      */
     @PostConstruct
     protected void postConstruct() {
-    	messageLabel.setText("Select the projected columns for your view");
+    	columnsTable.setOwner(this.getClass().getName());
  
-    	replaceDdlButton.setIcon(IconType.ARROW_DOWN);
-
+    	msgCheckOneOrMoreColumns = i18n.format("select-table-columns-page.check-one-or-more-columns.message");
+    	msgClickApplyWhenFinished = i18n.format("select-table-columns-page.click-apply-when-finished.message");
+    	
+    	messageLabel.setText(msgCheckOneOrMoreColumns);
+    	
     	// Tooltips
-    	columnsTable.setTitle(i18n.format("ssource-editor-panel.columnsTable.tooltip"));
+    	columnsTable.setTitle(i18n.format("select-table-columns-page.columnsTable.tooltip"));
     }
     
     /**
@@ -88,13 +82,14 @@ public class SelectTableColumnsPage extends Composite {
      */
     public void update() {
     	String tableName = editorManager.getTable(0);
-        titleLabel.setText(i18n.format("select-columns-page.title", tableName));
+    	this.wizard.setWizardPageTitle(i18n.format("select-table-columns-page.title"));
         tableTitleLabel.setText(tableName);
 
     	List<CheckableNameTypeRow> allColumns = editorManager.getColumns(0);
         if(allColumns!=null) {
         	columnsTable.setData(allColumns);
         }
+        updateStatus();
     }
     
     /**
@@ -102,14 +97,54 @@ public class SelectTableColumnsPage extends Composite {
      * @param wizard the wizard
      */
     public void setWizard(ViewEditorWizardPanel wizard) {
+    	this.wizard = wizard;
     }
     
     /**
-     * Event handler that fires when the user clicks the Replace DDL button.
-     * @param event
+     * Handles UiEvents from columnNamesTable
+     * @param dEvent
      */
-    @EventHandler("btn-table-columns-createDdl")
-    public void onReplaceDdlButtonClick(ClickEvent event) {
+    public void onUiEvent(@Observes UiEvent dEvent) {
+    	// checkbox change event from column names table
+    	if(dEvent.getType()==UiEventType.COLUMN_NAME_TABLE_CHECKBOX_CHANGED && dEvent.getEventSource().equals(this.getClass().getName())) {
+    		List<String> selectedColumns = columnsTable.getSelectedColumnNames();
+    		List<String> selectedColumnTypes = columnsTable.getSelectedColumnTypes();
+    		editorManager.setSelectedColumns(0, selectedColumns);
+    		editorManager.setSelectedColumnTypes(0, selectedColumnTypes);
+    		updateStatus();
+    	}
+    }
+    
+    /**
+     * Update panel status
+     */
+	private void updateStatus( ) {
+    	currentStatus = Constants.OK;
+    	
+		// Ensure some columns are selected
+    	if(Constants.OK.equals(currentStatus)) {
+    		List<String> selectedColumns = editorManager.getSelectedColumns(0);
+    		int nCols = (selectedColumns==null) ? 0 : selectedColumns.size();
+    		if(nCols == 0) {
+    			currentStatus = msgCheckOneOrMoreColumns;
+    		}
+    	}
+    	
+		// Enable setDdlButton button if OK
+    	if(Constants.OK.equals(currentStatus)) {
+    		messageLabel.setText(msgClickApplyWhenFinished);
+    		this.wizard.setNextOrReplaceButton(true);
+    	} else {
+    		messageLabel.setText(currentStatus);
+    		this.wizard.setNextOrReplaceButton(false);
+    	}
+    	
+    }
+	
+    /**
+     * Handles when the user clicks the Replace DDL button.
+     */
+    public void replaceDdlClicked( ) {
     	List<String> colNames = columnsTable.getSelectedColumnNames();
     	List<String> colTypes = columnsTable.getSelectedColumnTypes();
     	

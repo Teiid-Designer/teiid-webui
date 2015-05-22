@@ -23,6 +23,9 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.Icon;
+import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
@@ -46,7 +49,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Anchor;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
@@ -110,6 +112,9 @@ public class DataServiceDetailsScreen extends Composite {
     
     @Inject @DataField("table-service-details-queryResults")
     protected QueryResultsPanel queryResultsPanel;
+    
+    @Inject @DataField("icon-download")
+    protected Icon downloadIcon;
 
     @Override
     @WorkbenchPartTitle
@@ -131,6 +136,7 @@ public class DataServiceDetailsScreen extends Composite {
 //    	serviceInternal = i18n.format("servicedetails.page-title-internal");
 //    	serviceExternal = i18n.format("servicedetails.page-title-external");
 
+    	downloadIcon.setType(IconType.DOWNLOAD);
     	downloadClientJarAnchor.setText("teiid-jdbc.jar");
     	
     	// Tooltips

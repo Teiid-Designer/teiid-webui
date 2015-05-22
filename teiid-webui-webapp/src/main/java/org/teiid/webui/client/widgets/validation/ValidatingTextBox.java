@@ -72,6 +72,10 @@ public class ValidatingTextBox extends Composite {
     	}
     }
     
+    public void setLabelText(String labelText) {
+    	this.fgLabel.setText(labelText);
+    }
+    
     public void setLabelVisible(boolean isVisible) {
     	this.fgLabel.setVisible(isVisible);
     }

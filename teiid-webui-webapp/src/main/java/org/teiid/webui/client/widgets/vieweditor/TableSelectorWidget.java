@@ -17,41 +17,36 @@ package org.teiid.webui.client.widgets.vieweditor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.ListBox;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
-import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.webui.client.dialogs.UiEvent;
 import org.teiid.webui.client.dialogs.UiEventType;
 import org.teiid.webui.client.messages.ClientMessages;
 import org.teiid.webui.client.services.NotificationService;
 import org.teiid.webui.client.services.QueryRpcService;
-import org.teiid.webui.client.services.TeiidRpcService;
 import org.teiid.webui.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.webui.client.widgets.CheckableNameTypeRow;
-import org.teiid.webui.client.widgets.TablesProcNamesTable;
+import org.teiid.webui.client.widgets.table.TableNamesTable;
 import org.teiid.webui.share.Constants;
+import org.teiid.webui.share.TranslatorHelper;
 import org.teiid.webui.share.beans.QueryColumnBean;
 import org.teiid.webui.share.beans.QueryColumnResultSetBean;
 import org.teiid.webui.share.beans.QueryTableProcBean;
+import org.teiid.webui.share.services.StringUtils;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.view.client.MultiSelectionModel;
-import com.google.gwt.view.client.SelectionChangeEvent;
 
 @Dependent
 @Templated("./TableSelectorWidget.html")
@@ -68,8 +63,6 @@ public class TableSelectorWidget extends Composite {
     private NotificationService notificationService;
     
     @Inject
-    protected TeiidRpcService teiidService;
-    @Inject
     protected QueryRpcService queryService;
     
     @Inject Event<UiEvent> uiEvent;
@@ -77,13 +70,9 @@ public class TableSelectorWidget extends Composite {
     @Inject @DataField("listbox-sources")
     private ListBox listboxSources;
     @Inject @DataField("tbl-source-tables")
-    private TablesProcNamesTable sourceTablesTable;
-    @Inject @DataField("btn-move-to-selected")
-    private Button moveToSelectedButton;
+    private TableNamesTable sourceTablesTable;
     
 	private Map<String,String> shortToLongTableNameMap = new HashMap<String,String>();
-	private Set<String> selectedSourceTables = new HashSet<String>();
-	private MultiSelectionModel<String> sourceTableSelectionModel;
 
 	private ViewEditorManager editorManager = ViewEditorManager.getInstance();
 	
@@ -108,23 +97,8 @@ public class TableSelectorWidget extends Composite {
         	}
         });
         
-    	// SelectionModel to handle Table-procedure selection 
-    	sourceTableSelectionModel = new MultiSelectionModel<String>();
-    	sourceTablesTable.setSelectionModel(sourceTableSelectionModel); 
-    	sourceTableSelectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
-    		public void onSelectionChange( SelectionChangeEvent event) { 
-    			Set<String> selected = sourceTableSelectionModel.getSelectedSet();
-    			selectedSourceTables.clear();
-    			selectedSourceTables.addAll(selected);
-    			if (selected != null) {
-    				moveToSelectedButton.setEnabled(true);
-    			} else {
-    				moveToSelectedButton.setEnabled(false);
-    			}
-    		} });
-    	
-
-    	moveToSelectedButton.setEnabled(false);
+        sourceTablesTable.setOwner(this.getClass().getName());
+        sourceTablesTable.setShowHeader(false);
     }
     
     /**
@@ -135,45 +109,80 @@ public class TableSelectorWidget extends Composite {
     }
         
     /**
-     * Event handler that fires when the user clicks the Move to Selected Tables button.
-     * @param event
+     * Handles UiEvents
+     * @param dEvent
      */
-    @EventHandler("btn-move-to-selected")
-    public void onMoveToSelectedButtonClick(ClickEvent event) {
-    	int nCurrentTables = editorManager.getTables().size();
-    	// Maximum of 2 tables allowed
-    	if(nCurrentTables>=2) return;
+    public void onUiEvent(@Observes UiEvent dEvent) {
+    	// Table checkbox has been checked
+    	if(dEvent.getType() == UiEventType.TABLE_NAME_TABLE_CHECKBOX_CHECKED) {
+    		int nCurrentTables = editorManager.getTables().size();
+    		// Maximum of 2 tables allowed
+    		if(nCurrentTables>=2) return;
 
-    	Object[] tableArray = selectedSourceTables.toArray();
-    	// If already one table, add first selection at second position
-    	if(nCurrentTables==1) {
-    		String selectedSourceTable = (String)tableArray[0];
-        	// Set the table at the specified index
-        	editorManager.setTable(1,selectedSourceTable);
-        	// Does fetch of the Table Columns
-        	setManagerColumnsForTable(getSelectedSource(),selectedSourceTable,1);
-        	// Set source for Table 
-        	editorManager.setSourceForTable(1,getSelectedSource());
-        // No current tables - will allow up to 2 additionally
-    	} else {
-    		int nTables = (tableArray.length > 2) ? 2 : tableArray.length;
-    		for(int i=0; i<nTables; i++) {
-    			String selectedSourceTable = (String)tableArray[i];
-    			// Set the table at the specified index
-    			editorManager.setTable(i,selectedSourceTable);
-    			// Does fetch of the Table Columns
-    			setManagerColumnsForTable(getSelectedSource(),selectedSourceTable,i);
-    			// Set source for Table 
-    			editorManager.setSourceForTable(i,getSelectedSource());
+    		String selectedSourceTable = dEvent.getTableName();
+    		String selectedSource = getSelectedSource();
+    		
+    		// If already one table, add first selection at second position
+    		int indx = (nCurrentTables==1) ? 1 : 0;
+    		
+    		// Set the table at the specified index
+    		editorManager.setTable(indx,selectedSourceTable);
+    		// Does fetch of the Table Columns
+    		setManagerColumnsForTable(selectedSource,selectedSourceTable,indx);
+    		// Set source for Table 
+    		editorManager.setSourceForTable(indx,selectedSource);
+
+    		// Get Updated tables
+    		List<TableListItem> newTables = editorManager.getTableItems();
+
+    		boolean disableUnchecked = newTables.size() >= 2;
+    		sourceTablesTable.setDisableUncheckedRows(disableUnchecked);
+    		
+    		fireSetTablesEvent(newTables);
+    	// Table checkbox has been unchecked
+    	} else if(dEvent.getType() == UiEventType.TABLE_NAME_TABLE_CHECKBOX_UNCHECKED) {
+    		// Get the unchecked table
+    		String uncheckedTableName = dEvent.getTableName();
+    		String uncheckedSrcName = getSelectedSource();
+    		
+    		// Remove the table from the editor manager selections
+    		List<TableListItem> tItems = editorManager.getTableItems();
+    		int indx = -1;
+    		for(int i=0; i<tItems.size(); i++) {
+    			String tableName = tItems.get(i).getTableName();
+    			String srcName = tItems.get(i).getSourceName();
+    			if (StringUtils.equals(uncheckedTableName, tableName) && StringUtils.equals(uncheckedSrcName,srcName)) {
+    				indx = i;
+    				break;
+    			}
+    		}
+    		// Table index found, remove it from manager and update
+    		if(indx!=-1) {
+    			editorManager.removeTable(indx);
+    			
+        		// Get Updated tables
+        		List<TableListItem> newTables = editorManager.getTableItems();
+
+        		// refresh disable checkbox status
+        		boolean disableUnchecked = newTables.size() >= 2;
+        		sourceTablesTable.setDisableUncheckedRows(disableUnchecked);
+        		
+        		fireSetTablesEvent(newTables);
+    		}
+    	// Selected Table was removed
+    	} else if(dEvent.getType() == UiEventType.REMOVE_TABLE) {
+    		// Set unchecked disablement based on number of tables
+    		List<TableListItem> newTables = editorManager.getTableItems();
+    		boolean disableUnchecked = newTables.size() >= 2;
+    		sourceTablesTable.setDisableUncheckedRows(disableUnchecked);
+    		
+    		TableListItem tableItem = dEvent.getRemoveTable();
+    		// If this source is currently selected, uncheck the table
+    		if(StringUtils.equals(getSelectedSource(), tableItem.getSourceName())) {
+        		// refresh disable checkbox status
+        		sourceTablesTable.setCheckedState(tableItem.getTableName(),false);
     		}
     	}
-
-    	// Get Updated tables
-    	List<TableListItem> newTables = editorManager.getTableItems();
-
-    	sourceTableSelectionModel.clear();
-    	
-    	fireSetTablesEvent(newTables);
     }
     
     /**
@@ -208,21 +217,31 @@ public class TableSelectorWidget extends Composite {
      * Get the Tables and Procs for the supplied data source
      * @param dataSourceName the name of the source
      */
-    protected void doGetTablesAndProcs(String dataSourceName) {
+    protected void doGetTablesAndProcs(final String dataSourceName) {
+    	// Current table selections
+    	final List<TableListItem> tableItems = editorManager.getTableItems();
+		final boolean disableUnchecked = tableItems.size() >= 2;
+    	
     	// Certain types, no need to do a server fetch
 		String srcType = editorManager.getSourceType(dataSourceName);
 		String translator = editorManager.getSourceTranslator(dataSourceName);
 		if(srcType!=null) {
-			if(srcType.equals("webservice") && !translator.equalsIgnoreCase("odata")) {
-				List<String> procList = new ArrayList<String>();
-				procList.add("invokeHttp");
-				sourceTableSelectionModel.clear();
+			if(srcType.equals(TranslatorHelper.TEIID_WEBSERVICE_DRIVER) && !translator.equalsIgnoreCase(TranslatorHelper.ODATA)) {
+				List<CheckableNameTypeRow> procList = new ArrayList<CheckableNameTypeRow>();
+				CheckableNameTypeRow row = new CheckableNameTypeRow();
+				row.setName(TranslatorHelper.TEIID_WEBSERVICE_PROC);
+				setRowCheckedState(row,dataSourceName,tableItems);
+				procList.add(row);
+	    		sourceTablesTable.setDisableUncheckedRows(disableUnchecked);
 				sourceTablesTable.setData(procList);
 				return;
-			} else if(srcType.equalsIgnoreCase("file")) {
-				List<String> procList = new ArrayList<String>();
-				procList.add("getTextFiles");
-				sourceTableSelectionModel.clear();
+			} else if(srcType.equalsIgnoreCase(TranslatorHelper.TEIID_FILE_DRIVER)) {
+				List<CheckableNameTypeRow> procList = new ArrayList<CheckableNameTypeRow>();
+				CheckableNameTypeRow row = new CheckableNameTypeRow();
+				row.setName(TranslatorHelper.TEIID_FILE_PROC);
+				setRowCheckedState(row,dataSourceName,tableItems);
+				procList.add(row);
+	    		sourceTablesTable.setDisableUncheckedRows(disableUnchecked);
 				sourceTablesTable.setData(procList);
 				return;
 			}
@@ -233,7 +252,7 @@ public class TableSelectorWidget extends Composite {
 		queryService.getTablesAndProcedures(vdbSrcJndi, vdbSrcName, new IRpcServiceInvocationHandler<List<QueryTableProcBean>>() {
 			@Override
 			public void onReturn(List<QueryTableProcBean> tablesAndProcs) {
-				List<String> nameList = new ArrayList<String>();
+				List<CheckableNameTypeRow> nameList = new ArrayList<CheckableNameTypeRow>();
 				shortToLongTableNameMap.clear();
 				for(QueryTableProcBean tp : tablesAndProcs) {
 					String name = tp.getName();
@@ -241,22 +260,50 @@ public class TableSelectorWidget extends Composite {
 						if(name.contains(".PUBLIC.")) {
 							String shortName = name.substring(name.indexOf(".PUBLIC.")+".PUBLIC.".length());
 							shortToLongTableNameMap.put(shortName, name);
-							nameList.add(shortName);
+							CheckableNameTypeRow row = new CheckableNameTypeRow();
+							row.setName(shortName);
+							setRowCheckedState(row,dataSourceName,tableItems);
+							nameList.add(row);
 						} else if(!name.contains(".INFORMATION_SCHEMA.")) {
 							shortToLongTableNameMap.put(name, name);
-							nameList.add(name);
+							CheckableNameTypeRow row = new CheckableNameTypeRow();
+							row.setName(name);
+							setRowCheckedState(row,dataSourceName,tableItems);
+							nameList.add(row);
 						}
 					}
 				}
-				sourceTableSelectionModel.clear();
+				//sourceTableSelectionModel.clear();
+	    		sourceTablesTable.setDisableUncheckedRows(disableUnchecked);
 				sourceTablesTable.setData(nameList);
 			}
 			@Override
 			public void onError(Throwable error) {
-				notificationService.sendErrorNotification(i18n.format("joineditor-panel.error-getting-tables-procs"), error); //$NON-NLS-1$
+				notificationService.sendErrorNotification(i18n.format("table-selector-widget.error-getting-tables-procs"), error); //$NON-NLS-1$
 			}
 		});
 
+    }
+    
+    /**
+     * Set the row checked state.
+     * @param row the table row
+     * @param dsName the current datasource
+     * @param selectedTables the selected TableListItems
+     */
+    private void setRowCheckedState(CheckableNameTypeRow row, String dsName, List<TableListItem> selectedTables) {
+    	boolean isChecked = false;
+    	for(TableListItem tItem : selectedTables) {
+    		if(!tItem.isPlaceHolder()) {
+    			String selectedSourceName = tItem.getSourceName();
+    			String selectedTableName = tItem.getTableName();
+    			if(StringUtils.equals(selectedSourceName, dsName) && StringUtils.equals(selectedTableName, row.getName())) {
+    				isChecked = true;
+    				break;
+    			}
+    		}
+    	}
+    	row.setChecked(isChecked);
     }
     
     /**
@@ -283,11 +330,10 @@ public class TableSelectorWidget extends Composite {
     				colList.add(cRow);
     			}
     			editorManager.setColumns(tableIndx, colList);
-    			//columnsTable.setData(colList);
     		}
     		@Override
     		public void onError(Throwable error) {
-    			notificationService.sendErrorNotification(i18n.format("ssource-editor-panel.error-getting-tablecols"), error); //$NON-NLS-1$
+    			notificationService.sendErrorNotification(i18n.format("table-selector-widget.error-getting-tablecols"), error); //$NON-NLS-1$
     			// noColumnsMessage.setVisible(true);
     			// columnFetchInProgressMessage.setVisible(false);
     		}
@@ -325,7 +371,6 @@ public class TableSelectorWidget extends Composite {
     		listboxSources.setSelectedIndex(0);
     		sourceTablesTable.clear();
     	}
-    	moveToSelectedButton.setEnabled(false);
     }
 
     /**

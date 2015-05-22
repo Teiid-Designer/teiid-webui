@@ -29,6 +29,7 @@ public class TableListItem extends AbstractPageRow {
 	private String sourceName;
     private String tableName;
     private String type;
+    private boolean isPlaceHolder = false;
 
     public String getSourceName() {
 		return sourceName;
@@ -47,6 +48,12 @@ public class TableListItem extends AbstractPageRow {
 	}
 	public void setType(String type) {
 		this.type = type;
+	}
+	public boolean isPlaceHolder() {
+		return this.isPlaceHolder;
+	}
+	public void setPlaceHolder(boolean isPlaceHolder) {
+		this.isPlaceHolder=isPlaceHolder;
 	}
     
 }

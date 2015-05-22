@@ -8,6 +8,7 @@ import java.util.Map;
 import org.teiid.webui.client.utils.DdlHelper;
 import org.teiid.webui.client.widgets.CheckableNameTypeRow;
 import org.teiid.webui.share.Constants;
+import org.teiid.webui.share.TranslatorHelper;
 import org.teiid.webui.share.beans.DataSourcePageRow;
 import org.teiid.webui.share.services.StringUtils;
 
@@ -32,7 +33,7 @@ public class ViewEditorManager {
 	private List<DataSourcePageRow> allAvailableSources = new ArrayList<DataSourcePageRow>();
 	private Map<Integer,String> templateSQLMap = new HashMap<Integer,String>();
 	private Map<Integer,String> templateDDLMap = new HashMap<Integer,String>();
-	private String joinType = "INNER";
+	private String joinType = Constants.JOIN_TYPE_INNER;
 	private int defineTemplateTableIndx = 0;
 
 	/**
@@ -62,7 +63,7 @@ public class ViewEditorManager {
 		sourceForTableMap.clear();
 		templateSQLMap.clear();
 		templateDDLMap.clear();
-		joinType = "INNER";
+		joinType = Constants.JOIN_TYPE_INNER;
 		defineTemplateTableIndx = 0;
 	}
 	
@@ -158,7 +159,7 @@ public class ViewEditorManager {
 		for(int i=0; i<nTables; i++) {
 			String sourceType = getSourceTypeForTable(i);
 			String translator = getTranslatorForTable(i);
-			if( (sourceType.equalsIgnoreCase("webservice")&&!translator.equalsIgnoreCase("odata")) || sourceType.equalsIgnoreCase("file")) {
+			if( (sourceType.equalsIgnoreCase(TranslatorHelper.TEIID_WEBSERVICE_DRIVER)&&!translator.equalsIgnoreCase(TranslatorHelper.ODATA)) || sourceType.equalsIgnoreCase(TranslatorHelper.TEIID_FILE_DRIVER)) {
 				requiredStates.add(true);
 			} else {
 				requiredStates.add(false);
@@ -184,7 +185,7 @@ public class ViewEditorManager {
 	
 	public boolean tableRequiresTemplate(int tableIndex) {
 		String sourceType = getSourceTypeForTable(tableIndex);
-		if(sourceType!=null && (sourceType.equalsIgnoreCase("webservice") || sourceType.equalsIgnoreCase("file"))) {
+		if(sourceType!=null && (sourceType.equalsIgnoreCase(TranslatorHelper.TEIID_WEBSERVICE_DRIVER) || sourceType.equalsIgnoreCase(TranslatorHelper.TEIID_FILE_DRIVER))) {
 			return true;
 		} 
 		return false;

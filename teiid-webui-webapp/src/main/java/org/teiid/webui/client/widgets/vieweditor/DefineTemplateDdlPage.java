@@ -22,16 +22,11 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
-import org.gwtbootstrap3.client.ui.Button;
-import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
-import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.teiid.webui.client.dialogs.UiEvent;
 import org.teiid.webui.client.dialogs.UiEventType;
 import org.teiid.webui.client.messages.ClientMessages;
-import org.teiid.webui.client.services.QueryRpcService;
-import org.teiid.webui.client.services.TeiidRpcService;
 import org.teiid.webui.client.utils.DdlHelper;
 import org.teiid.webui.client.widgets.validation.ExtendedTextArea;
 import org.teiid.webui.client.widgets.validation.TextChangeEvent;
@@ -39,7 +34,6 @@ import org.teiid.webui.client.widgets.validation.TextChangeEventHandler;
 import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.services.StringUtils;
 
-import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
 
@@ -53,24 +47,15 @@ public class DefineTemplateDdlPage extends Composite {
     @Inject
     private ClientMessages i18n;
     
-    @Inject
-    protected TeiidRpcService teiidService;
-    @Inject
-    protected QueryRpcService queryService;
-    
     @Inject Event<UiEvent> setDdlEvent;
     
-    @Inject @DataField("lbl-define-template-title")
-    protected Label titleLabel;
     @Inject @DataField("lbl-define-template-message")
     protected Label messageLabel;
     
     @Inject @DataField("textarea-define-template-ddl")
     protected ExtendedTextArea textArea;
     
-    @Inject @DataField("btn-replace")
-    protected Button replaceDdlButton;
-    
+	private ViewEditorWizardPanel wizard;
 	private ViewEditorManager editorManager = ViewEditorManager.getInstance();
    
     /**
@@ -78,23 +63,40 @@ public class DefineTemplateDdlPage extends Composite {
      */
     @PostConstruct
     protected void postConstruct() {
-    	messageLabel.setText("This type of sources requires a SQL transformation - please edit");
+    	messageLabel.setText(i18n.format("define-template-ddl-page.message.text"));
     	
     	textArea.addTextChangeEventHandler(new TextChangeEventHandler() {
             @Override
 			public void onTextChange(TextChangeEvent event) {
             	int tableIndx = editorManager.getTemplateTableIndex();
             	int nTables = editorManager.getTables().size();
+            	String areaText = textArea.getText();
             	// Update editor manager
             	if(nTables==1) {
-            		editorManager.setTemplateDDL(tableIndx, textArea.getText());
+            		editorManager.setTemplateDDL(tableIndx, areaText);
             	} else {
-            		editorManager.setTemplateSQL(tableIndx, textArea.getText());
+            		editorManager.setTemplateSQL(tableIndx, areaText);
+            	}
+            	// Enable replace if placeholders have been replaced
+            	if(!hasPlaceHolders(areaText)) {
+            		wizard.setNextOrReplaceButton(true);
             	}
             }
         });
-    	
-    	replaceDdlButton.setIcon(IconType.ARROW_DOWN);
+    }
+    
+    /**
+     * Checks the supplied text for placeholders.
+     * @param text the text
+     * @return 'true' if has placeholders, 'false' if not.
+     */
+    private boolean hasPlaceHolders(String text) {
+    	if(!StringUtils.isEmpty(text) && (text.contains("<Col1>") || text.contains("<Col2>") || text.contains("<MyFileName.txt>") ||
+    			text.contains("<Service_Endpoint>") || text.contains("<ROOT_PATH>") ||
+    			text.contains("<Col1_PATH>") || text.contains("<Col2_PATH>"))) {
+    		return true;
+    	} 
+    	return false;
     }
     
     /**
@@ -127,7 +129,6 @@ public class DefineTemplateDdlPage extends Composite {
         	    editorManager.setTemplateSQL(tableIndx, sql);
         		setText(sql);
     		}
-			setReplaceDdlButtonVisible(false);
     	// Only one table - set the View DDL and enable the replace button
     	} else {
     		// Clear any previous SQL
@@ -141,8 +142,13 @@ public class DefineTemplateDdlPage extends Composite {
         	    editorManager.setTemplateDDL(tableIndx, ddl);
         		setText(ddl);
     		}
-			setReplaceDdlButtonVisible(true);
     	}
+    	
+		if(!hasPlaceHolders(this.textArea.getText())) {
+    		this.wizard.setNextOrReplaceButton(true);
+		} else {
+    		this.wizard.setNextOrReplaceButton(false);
+		}
 		
 		// Determine page number, set title
 		int pageNumber = 2;
@@ -151,7 +157,7 @@ public class DefineTemplateDdlPage extends Composite {
 			pageNumber = 3;
 		}
 		String srcName = editorManager.getSourceNameForTable(tableIndx);
-        titleLabel.setText(i18n.format("define-template-page.title", pageNumber, srcName));
+    	this.wizard.setWizardPageTitle(i18n.format("define-template-page.title", pageNumber, srcName));
     }
     
     /**
@@ -159,6 +165,7 @@ public class DefineTemplateDdlPage extends Composite {
      * @param wizard the wizard
      */
     public void setWizard(ViewEditorWizardPanel wizard) {
+    	this.wizard = wizard;
     }
     
     /**
@@ -178,19 +185,9 @@ public class DefineTemplateDdlPage extends Composite {
     }
     
     /**
-     * Sets whether the Replace DDL button is shown.
-     * @param isVisible 'true' if the replace button is shown, 'false' if not.
+     * Handler for Replace DDL button click.
      */
-    public void setReplaceDdlButtonVisible(boolean isVisible) {
-    	this.replaceDdlButton.setVisible(isVisible);
-    }
-    
-    /**
-     * Event handler that fires when the user clicks the Replace DDL button.
-     * @param event
-     */
-    @EventHandler("btn-replace")
-    public void onReplaceDdlButtonClick(ClickEvent event) {
+    public void replaceDdlClicked( ) {
     	String viewDdl = this.textArea.getText();
     	List<String> sources = editorManager.getSources();
      	

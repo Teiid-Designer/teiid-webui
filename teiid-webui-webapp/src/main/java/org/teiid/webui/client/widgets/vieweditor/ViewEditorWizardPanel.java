@@ -19,19 +19,26 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
+import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
 import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.constants.ButtonType;
+import org.gwtbootstrap3.client.ui.constants.IconPosition;
 import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.teiid.webui.client.dialogs.UiEvent;
+import org.teiid.webui.client.dialogs.UiEventType;
+import org.teiid.webui.client.messages.ClientMessages;
 import org.teiid.webui.client.resources.AppResource;
 import org.teiid.webui.client.services.TeiidRpcService;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DeckPanel;
+import com.google.gwt.user.client.ui.Label;
 
 @Dependent
 @Templated("./ViewEditorWizardPanel.html")
@@ -46,18 +53,30 @@ public class ViewEditorWizardPanel extends Composite {
 	private static final int DEFINE_TEMPLATE_PAGE_INDX = 2;
 	private static final int LAST_PAGE_DEFINE_JOIN_INDX = 3;
 	
+	private static final String PREVIOUS_BUTTON_TEXT = "Previous";
+	private static final String NEXT_BUTTON_TEXT = "Next";
+	private static final String REPLACE_BUTTON_TEXT = "Replace";
+	
+    @Inject
+    private ClientMessages i18n;
+    
     @Inject
     protected TeiidRpcService teiidService;
     
     @Inject @DataField("wizard-deckpanel")
     protected DeckPanel wizardDeckPanel;
     
-    //@Inject @DataField("btn-resetPage")
-    //protected Button resetPageButton;
+    @Inject @DataField("lbl-page-title")
+    protected Label pageTitleLabel;
+    @Inject @DataField("btn-manage-sources")
+    protected Button manageSourceButton;
+    
+    @Inject @DataField("btn-resetPage")
+    protected Button resetPageButton;
     @Inject @DataField("btn-previousPage")
     protected Button previousPageButton;
-    @Inject @DataField("btn-nextPage")
-    protected Button nextPageButton;
+    @Inject @DataField("btn-replaceDdlOrNext")
+    protected Button nextOrReplaceButton;
 
     @Inject 
     protected SelectTablesPage selectTablesPage;
@@ -67,6 +86,14 @@ public class ViewEditorWizardPanel extends Composite {
     protected DefineTemplateDdlPage defineTemplateDdlPage;
     @Inject 
     protected DefineJoinCriteriaPage defineJoinCriteriaPage;
+    
+    @Inject Event<UiEvent> uiEvent;
+
+    private String owner;
+	private enum NextReplaceButton {
+		NEXT,
+		REPLACE
+	}
     
     /**
      * Called after construction.
@@ -80,12 +107,15 @@ public class ViewEditorWizardPanel extends Composite {
     	defineTemplateDdlPage.setWizard(this);
     	defineJoinCriteriaPage.setWizard(this);
     	
-    	previousPageButton.setIcon(IconType.ARROW_LEFT);
-    	nextPageButton.setIcon(IconType.ARROW_RIGHT);
-    	//resetPageButton.setEnabled(true);
-    	setNextButtonEnabled(false);
-    	setPreviousButtonEnabled(false);
+    	manageSourceButton.setTitle(i18n.format("vieweditor-panel.manageSourceButton.tooltip"));
     	
+    	previousPageButton.setIcon(IconType.ANGLE_LEFT);
+    	previousPageButton.setIconPosition(IconPosition.LEFT);
+    	previousPageButton.setText(PREVIOUS_BUTTON_TEXT);
+    	previousPageButton.setEnabled(false);
+    	resetPageButton.setEnabled(false);
+    	setNextReplaceButton(NextReplaceButton.NEXT, false);
+		
     	// Add all of the panels to wizard deckPanel
     	wizardDeckPanel.add(selectTablesPage);
     	wizardDeckPanel.add(selectTableColumnsPage);
@@ -105,6 +135,10 @@ public class ViewEditorWizardPanel extends Composite {
     	selectTablesPage.refreshAvailableSources( );
 	}
     
+    public void setWizardPageTitle(String pageTitle) {
+    	pageTitleLabel.setText(pageTitle);
+    }
+    
     /**
      * Resets any saved state
      */
@@ -112,30 +146,70 @@ public class ViewEditorWizardPanel extends Composite {
     	// Start Over clicked - clear the Manager contents
     	ViewEditorManager.getInstance().clear();
     	
+    	// Set next button in disable state
+    	setNextReplaceButton(NextReplaceButton.NEXT,false);
+    	this.manageSourceButton.setVisible(true);
+    	this.previousPageButton.setEnabled(false);
+    	this.resetPageButton.setEnabled(false);
+    	
     	// Updates the starting page
     	updatePage(FIRST_PAGE_SELECT_TABLES_INDX);
     }
     
-//    /**
-//     * Event handler that fires when the user clicks the ResetPage button.
-//     * @param event
-//     */
-//    @EventHandler("btn-resetPage")
-//    public void onResetPageButtonClick(ClickEvent event) {
-//    	// Reset any saved state
-//    	reset();
-//
-//    	// Show the first page
-//    	wizardDeckPanel.showWidget(FIRST_PAGE_SELECT_TABLES_INDX);
-//    }
-
     /**
-     * Event handler that fires when the user clicks the NextPage button.
+     * Set enabled state of the Next or Replace Button
+     * @param enabled the enabled statue
+     */
+    public void setNextOrReplaceButton(boolean enabled) {
+    	boolean isEnabled = this.nextOrReplaceButton.isEnabled();
+    	if(isEnabled!=enabled) this.nextOrReplaceButton.setEnabled(enabled);
+    	if(enabled) {
+    		this.nextOrReplaceButton.setType(ButtonType.PRIMARY);
+    	} else {
+    		this.nextOrReplaceButton.setType(ButtonType.DEFAULT);
+    	}
+    }
+    
+    /**
+     * Event handler that fires when the user clicks the ResetPage button.
      * @param event
      */
-    @EventHandler("btn-nextPage")
+    @EventHandler("btn-resetPage")
+    public void onResetPageButtonClick(ClickEvent event) {
+    	// Reset any saved state
+    	reset();
+
+    	// Show the first page
+    	wizardDeckPanel.showWidget(FIRST_PAGE_SELECT_TABLES_INDX);
+    }
+    
+    /**
+     * Event handler that fires when the user clicks the Manage Sources button.
+     * @param event
+     */
+    @EventHandler("btn-manage-sources")
+    public void onManageSourcesButtonClick(ClickEvent event) {
+    	fireGoToManageSources();
+    }
+    
+    /**
+     * Event handler that fires when the user clicks the Next or Replace button.
+     * @param event
+     */
+    @EventHandler("btn-replaceDdlOrNext")
     public void onNextPageButtonClick(ClickEvent event) {
-    	showNextPage();
+    	if(nextOrReplaceButton.getText().equalsIgnoreCase("Next")) {
+    		showNextPage();
+    	} else {
+    		int visiblePage = wizardDeckPanel.getVisibleWidget();
+    		if(visiblePage==LAST_PAGE_SELECT_TABLE_COLS_INDX) {
+    			selectTableColumnsPage.replaceDdlClicked();
+    		} else if(visiblePage==DEFINE_TEMPLATE_PAGE_INDX) {
+    			defineTemplateDdlPage.replaceDdlClicked();
+    		} else if(visiblePage==LAST_PAGE_DEFINE_JOIN_INDX) {
+    			defineJoinCriteriaPage.replaceDdlClicked();
+    		}
+    	}
     }
     
     /**
@@ -148,6 +222,23 @@ public class ViewEditorWizardPanel extends Composite {
     }
     
     /**
+     * Fire go to manage soruces
+     */
+    public void fireGoToManageSources( ) {
+    	UiEvent event = new UiEvent(UiEventType.VIEW_EDITOR_GOTO_MANAGE_SOURCES);
+    	event.setEventSource(getOwner());
+    	uiEvent.fire(event);
+    }
+    
+    public void setOwner(String owner) {
+    	this.owner = owner;
+    }
+    
+    public String getOwner() {
+    	return this.owner;
+    }
+    
+    /**
      * Show the next page of the wizard
      */
     public void showNextPage() {
@@ -155,20 +246,26 @@ public class ViewEditorWizardPanel extends Composite {
     	int indx = wizardDeckPanel.getVisibleWidget();
     	
     	// If going to next page, previous and startOver buttons are enabled
-    	setPreviousButtonEnabled(true);
+    	previousPageButton.setEnabled(true);
  
     	int nextIndx = determineNextPage(indx);
     	
-    	// Update next page, then show it
+    	// Update page prior to showing
     	updatePage(nextIndx);
     	
     	wizardDeckPanel.showWidget(nextIndx);
-    	    	
-    	// If on last page, next button is enabled
+    	
+    	// Will not be on first page, enable the button
+    	this.resetPageButton.setEnabled(true);
+    	this.manageSourceButton.setVisible(false);
+    	
+    	// If on last page, next button has 'replace' text
     	if(nextIndx==LAST_PAGE_SELECT_TABLE_COLS_INDX || 
     	   nextIndx==LAST_PAGE_DEFINE_JOIN_INDX ||
     	   (nextIndx==DEFINE_TEMPLATE_PAGE_INDX && ViewEditorManager.getInstance().getTables().size()==1)) {
-    		setNextButtonEnabled(false);
+    		setNextReplaceButton(NextReplaceButton.REPLACE);
+    	} else {
+    		setNextReplaceButton(NextReplaceButton.NEXT);
     	}
     }
     
@@ -249,16 +346,20 @@ public class ViewEditorWizardPanel extends Composite {
     	// Get currently visible page
     	int indx = wizardDeckPanel.getVisibleWidget();
     	
-    	// If going to previous page, next button is enabled
-    	setNextButtonEnabled(true);
+    	// If going to previous page, next button is visible and enabled. Replace DDL is hidden and disabled
+    	setNextReplaceButton(NextReplaceButton.NEXT,true);
     	
     	int prevIndx = determinePreviousPage(indx);
     	updatePage(prevIndx);
     	wizardDeckPanel.showWidget(prevIndx);
     	
-    	// If on first page, previous and start buttons disabled
+    	// If on first page, previous and start over buttons disabled
     	if(prevIndx==FIRST_PAGE_SELECT_TABLES_INDX) {
-    		setPreviousButtonEnabled(false);
+        	previousPageButton.setEnabled(false);
+        	resetPageButton.setEnabled(false);
+        	manageSourceButton.setVisible(true);
+    	} else {
+        	previousPageButton.setEnabled(true);
     	}
     }
     
@@ -351,21 +452,49 @@ public class ViewEditorWizardPanel extends Composite {
     }
     
     /**
-     * Set enabled state of Next button
+     * Set button text and enabled state
+     * @param type the button type
      * @enabled 'true' if enabled, 'false' if not.
      */
-    public void setNextButtonEnabled(boolean enabled) {
-    	this.nextPageButton.setEnabled(enabled);
-    	this.nextPageButton.setVisible(enabled);
+    public void setNextReplaceButton(NextReplaceButton type, boolean enabled) {
+    	if(type==NextReplaceButton.NEXT) {
+    		nextOrReplaceButton.setIcon(IconType.ANGLE_RIGHT);
+    		nextOrReplaceButton.setIconPosition(IconPosition.RIGHT);
+    		nextOrReplaceButton.setText(NEXT_BUTTON_TEXT);
+        	nextOrReplaceButton.setEnabled(enabled);
+    	} else {
+    		nextOrReplaceButton.setIcon(IconType.ARROW_DOWN);
+    		nextOrReplaceButton.setIconPosition(IconPosition.RIGHT);
+    		nextOrReplaceButton.setText(REPLACE_BUTTON_TEXT);
+    		nextOrReplaceButton.setEnabled(enabled);
+    	}
+    	if(enabled) {
+    		nextOrReplaceButton.setType(ButtonType.PRIMARY);
+    	} else {
+    		nextOrReplaceButton.setType(ButtonType.DEFAULT);
+    	}
     }
-
+    
     /**
-     * Set enabled state of Previous button
-     * @enabled 'true' if enabled, 'false' if not.
+     * Set button text and icon
+     * @param type the button type
      */
-    public void setPreviousButtonEnabled(boolean enabled) {
-    	this.previousPageButton.setEnabled(enabled);
-    	this.previousPageButton.setVisible(enabled);
+    public void setNextReplaceButton(NextReplaceButton type) {
+    	if(type==NextReplaceButton.NEXT) {
+    		nextOrReplaceButton.setIcon(IconType.ANGLE_RIGHT);
+    		nextOrReplaceButton.setIconPosition(IconPosition.RIGHT);
+    		nextOrReplaceButton.setText(NEXT_BUTTON_TEXT);
+    	} else {
+    		nextOrReplaceButton.setIcon(IconType.ARROW_DOWN);
+    		nextOrReplaceButton.setIconPosition(IconPosition.RIGHT);
+    		nextOrReplaceButton.setText(REPLACE_BUTTON_TEXT);
+    	}
+    	boolean isEnabled = nextOrReplaceButton.isEnabled();
+    	if(isEnabled) {
+    		nextOrReplaceButton.setType(ButtonType.PRIMARY);
+    	} else {
+    		nextOrReplaceButton.setType(ButtonType.DEFAULT);
+    	}
     }
-        
+    
 }

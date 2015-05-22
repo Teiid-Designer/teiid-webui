@@ -31,24 +31,12 @@
         <h2>Edit Data Service</h2>
         <div ><em>A custom data service containing data you need to access in your applications.</em></div>
         
+        <!-- 
         <div class="row">
           <div class="col-sm-6">
             <div data-field="text-edit-service-status"></div>
           </div>
           <div class="col-sm-6"></div>
-        </div>
-        
-        <!-- 
-        <div class="row">
-          <div class="col-sm-3">
-            <label title="The name of the Data Service"><strong>Name</strong></label>
-            <input type="text" data-field="textbox-edit-service-name" class="form-control" style="width:100%" />
-          </div>
-          <div class="col-sm-3">
-            <div style="height:20px"></div>
-            <label class="checkbox"><input type="checkbox" data-field="checkbox-edit-service-visibility"> Service visible to outside parties</label>
-          </div>
-          <span class="col-sm-6"></span>
         </div>
         -->
         
@@ -56,20 +44,22 @@
           <div class="col-sm-3">
             <div data-field="textbox-edit-service-name"></div>
           </div>
-          <div class="col-sm-3">
-            <div style="height:20px"></div>
-            <label class="checkbox"><input type="checkbox" data-field="checkbox-edit-service-visibility"> Service visible to outside parties</label>
-          </div>
-          <span class="col-sm-6"></span>
         </div>
     
         <div class="row">
           <div class="col-sm-3">
-            <label title="A description for the Data Service"><strong>Description</strong></label>
-            <textarea data-field="textarea-edit-service-description" rows="2" class="form-control" style="width:100%" ></textarea>
+            <!-- <label title="A description for the Data Service"><strong>Description</strong></label> -->
+            <div data-field="textbox-edit-service-description"></div>
           </div>
-          <span class="col-sm-9"></span>
         </div>
+        
+        <!--
+        <div class="row">
+          <div class="col-sm-3">
+            <label class="checkbox"><input type="checkbox" data-field="checkbox-edit-service-visibility"> Service visible to outside parties</label>
+          </div>
+        </div>
+        -->
                 
         <div class="row">
           <div class="col-sm-8" data-field="view-editor-edit-service"></div>
@@ -79,8 +69,8 @@
         <div class="row">
           <div class="col-sm-12">
             <div style="height:10px"></div>
-            <button data-field="btn-edit-service-save" class="btn btn-primary">Save Changes</button>
             <button data-field="btn-edit-service-cancel" class="btn">Cancel</button>
+            <button data-field="btn-edit-service-save" class="btn btn-primary">Save</button>
           </div>
         </div>
 

@@ -24,6 +24,7 @@ public class UiEvent {
 	private UiEventType type;
 	private String dataSourceName;
 	private String dataServiceName;
+	private String tableName;
 	private String eventSource;
 	private String viewDdl;
 	private List<TableListItem> newTables;
@@ -68,6 +69,14 @@ public class UiEvent {
 
 	public void setDataServiceName(String dataServiceName) {
 		this.dataServiceName = dataServiceName;
+	}
+
+	public String getTableName() {
+		return tableName;
+	}
+
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
 	}
 
 	public String getEventSource() {
