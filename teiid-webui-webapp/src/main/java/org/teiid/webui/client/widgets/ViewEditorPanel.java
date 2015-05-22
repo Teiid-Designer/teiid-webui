@@ -71,7 +71,6 @@ public class ViewEditorPanel extends Composite {
 	private String statusTestView = null;
 	private String queryResultDefaultMsg = null;
 	private String currentStatus = null;
-	//private List<String> availableSourceNames = new ArrayList<String>();
 	
     @Inject
     private PlaceManager placeManager;
@@ -108,17 +107,9 @@ public class ViewEditorPanel extends Composite {
 	
     @Inject Event<UiEvent> stateChangedEvent;
 
-    // Single Source Editor
+    // View Editor Wizardd
     @Inject @DataField("view-editor-wizard")
     private ViewEditorWizardPanel viewEditorWizardPanel;
-    
-//    // Join Editor
-//    @Inject @DataField("join-editor")
-//    private JoinEditorPanel joinEditorPanel;
-//    
-//    // Templates Editor
-//    @Inject @DataField("templates-editor")
-//    private TemplatesEditorPanel templatesEditorPanel;
     
     // The results panel for display of example data
     private QueryResultsPanel queryResultsPanel;
@@ -186,11 +177,6 @@ public class ViewEditorPanel extends Composite {
      * Refresh the available dataSources from the editorManager
      */
 	public void refreshAvailableSources( ) {
-		//this.availableSourceNames.clear();
-		//this.availableSourceNames.addAll(availableSourceNames);
-		//singleSourceEditorPanel.setAvailableSources(availableSourceNames);
-		//joinEditorPanel.setAvailableSources(availableSourceNames);
-		//ViewEditorManager.getInstance().setAvailableSources(availableSourceNames);
 		viewEditorWizardPanel.refreshAvailableSources();
 		viewSourcePanel.setAllAvailableSources(ViewEditorManager.getInstance().getAvailableSourceNames());
 	}
@@ -216,7 +202,6 @@ public class ViewEditorPanel extends Composite {
     public void setServiceName(String svcName) {
     	this.serviceName = svcName;
     	this.testSqlTextArea.setText(Constants.BLANK);  // Force reset of test query if service name changes
-    	this.viewEditorWizardPanel.reset();  // Resets any saved state
     	updateStatus();
     }
 
