@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.teiid.webui.client.widgets;
+package org.teiid.webui.client.widgets.table;
 
 import java.util.Collections;
 import java.util.List;
-
-import org.teiid.webui.client.widgets.table.SimpleTable;
 
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.user.cellview.client.TextColumn;
@@ -73,6 +71,10 @@ public class TablesProcNamesTable extends Composite {
     
     public void setData(List<String> rows) {
     	table.setRowData(rows);
+    }
+
+    public List<String> getData() {
+    	return table.getRowData();
     }
     
     public void setSelectionModel( final SelectionModel<String> selectionModel ) {

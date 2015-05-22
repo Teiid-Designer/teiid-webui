@@ -56,8 +56,15 @@ public class ClientMessages {
         StringBuilder builder = new StringBuilder();
         for (Object arg : args) {
             String part1 = pattern.substring(0,pattern.indexOf('{'));
-            String part2 = pattern.substring(pattern.indexOf('}') + 1);
-            builder.append(part1).append(arg).append(part2);
+            int endIndx = pattern.indexOf('}') + 1;
+            String part2 = pattern.substring(endIndx);
+            builder.append(part1).append(arg);
+            if(!part2.contains("{")) {
+            	builder.append(part2);
+            	break;
+            } else {
+            	pattern = part2;
+            }
         }
         return builder.toString();
     }

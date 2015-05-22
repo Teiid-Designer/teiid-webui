@@ -21,7 +21,7 @@
 	<b:FormGroup ui:field="formgroup">
         <b:FormLabel for="formGrp" ui:field="fgLabel">Name</b:FormLabel>
         <t:ExtendedTextBox b:id="formGrp" ui:field="fgTextBox"/>
-        <b:HelpBlock ui:field="fgHelpBlock" text="Enter text"/>
+        <b:HelpBlock ui:field="fgHelpBlock" text=""/>
 	</b:FormGroup>
 
 </ui:UiBinder>

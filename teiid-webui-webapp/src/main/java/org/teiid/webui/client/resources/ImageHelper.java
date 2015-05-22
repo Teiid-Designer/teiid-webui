@@ -83,6 +83,41 @@ public class ImageHelper {
     }
     
 	/**
+	 * Get the image resource for the provided datasource type
+	 * @param dsType the dataSource type
+	 * @return the image resource
+	 */
+    public ImageResource getDataSourceSmallImageForType(String dsType) {
+    	ImageResource img = null;
+    	if(dsType.equals(Constants.DS_TYPE_FILE)) {
+    		img = AppResource.INSTANCE.images().dsType_file_small_Image();
+    	} else if(dsType.equals(Constants.DS_TYPE_GOOGLE)) {
+    		img = AppResource.INSTANCE.images().dsType_google_small_Image();
+    	} else if(dsType.equals(Constants.DS_TYPE_H2)) {
+    		img = AppResource.INSTANCE.images().dsType_h2_small_Image();
+    	} else if(dsType.equals(Constants.DS_TYPE_INFINISPAN)) {
+    		img = AppResource.INSTANCE.images().dsType_infinispan_small_Image();
+    	} else if(dsType.equals(Constants.DS_TYPE_LDAP)) {
+    		img = AppResource.INSTANCE.images().dsType_ldap_small_Image();
+    	} else if(dsType.equals(Constants.DS_TYPE_MODESHAPE)) {
+    		img = AppResource.INSTANCE.images().dsType_modeshape_small_Image();
+    	} else if(dsType.equals(Constants.DS_TYPE_MONGODB)) {
+    		img = AppResource.INSTANCE.images().dsType_mongodb_small_Image();
+    	} else if(dsType.equals(Constants.DS_TYPE_SALESFORCE)) {
+    		img = AppResource.INSTANCE.images().dsType_salesforce_small_Image();
+    	} else if(dsType.equals(Constants.DS_TYPE_TEIID)) {
+    		img = AppResource.INSTANCE.images().dsType_teiid_small_Image();
+    	} else if(dsType.equals(Constants.DS_TYPE_WEBSERVICE)) {
+    		img = AppResource.INSTANCE.images().dsType_webservice_small_Image();
+    	} else if(dsType.toLowerCase().contains(Constants.MYSQL_FRAGMENT)) {
+    		img = AppResource.INSTANCE.images().dsType_mysql_small_Image();
+    	} else if(dsType.toLowerCase().contains(Constants.POSTGRES_FRAGMENT)) {
+    		img = AppResource.INSTANCE.images().dsType_postgres_small_Image();
+    	}
+    	return img;
+    }
+    
+	/**
 	 * Determine if the type has a known image 
 	 * @param dsType the dataSource type
 	 * @return 'true' if a specific image is found, 'false' if not.

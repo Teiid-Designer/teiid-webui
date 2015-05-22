@@ -32,6 +32,10 @@ public interface AppCss extends ClientBundle {
 	@NotStrict
     @Source("css/DataGrid.css")
     CssResource customDataGridStyle();
+	
+	@NotStrict
+    @Source("css/VCenter.css")
+    CssResource vcenterStyle();
 
 	@NotStrict
     @Source("css/teiid-webui.css")

@@ -26,6 +26,7 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.Button;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
@@ -39,7 +40,6 @@ import org.teiid.webui.client.services.QueryRpcService;
 import org.teiid.webui.client.services.TeiidRpcService;
 import org.teiid.webui.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.webui.client.utils.DdlHelper;
-import org.teiid.webui.client.utils.UiUtils;
 import org.teiid.webui.client.widgets.QueryResultsPanel;
 import org.teiid.webui.client.widgets.ViewEditorPanel;
 import org.teiid.webui.client.widgets.validation.DuplicateNameValidator;
@@ -47,6 +47,7 @@ import org.teiid.webui.client.widgets.validation.EmptyNameValidator;
 import org.teiid.webui.client.widgets.validation.ServiceNameValidator;
 import org.teiid.webui.client.widgets.validation.TextChangeListener;
 import org.teiid.webui.client.widgets.validation.ValidatingTextBox;
+import org.teiid.webui.client.widgets.vieweditor.ViewEditorManager;
 import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.beans.DataSourcePageRow;
 import org.teiid.webui.share.beans.NotificationBean;
@@ -62,12 +63,9 @@ import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.IsWidget;
-import com.google.gwt.user.client.ui.TextArea;
 
 /**
  * EditDataServiceScreen - used to edit existing Data Services
@@ -78,7 +76,7 @@ import com.google.gwt.user.client.ui.TextArea;
 @WorkbenchScreen(identifier = "EditDataServiceScreen")
 public class EditDataServiceScreen extends Composite {
 
-	private String statusClickSave;
+//	private String statusClickSave;
 	private String serviceOriginalName;
 	
     @Inject
@@ -98,14 +96,14 @@ public class EditDataServiceScreen extends Composite {
     @Inject @DataField("textbox-edit-service-name")
     protected ValidatingTextBox serviceNameTextBox;
     
-    @Inject @DataField("textarea-edit-service-description")
-    protected TextArea serviceDescriptionTextBox;
+    @Inject @DataField("textbox-edit-service-description")
+    protected ValidatingTextBox serviceDescriptionTextBox;
     
-    @Inject @DataField("checkbox-edit-service-visibility")
-    protected CheckBox serviceVisibleCheckBox;
+//    @Inject @DataField("checkbox-edit-service-visibility")
+//    protected CheckBox serviceVisibleCheckBox;
     
-    @Inject @DataField("text-edit-service-status")
-    protected HTML statusText;
+//    @Inject @DataField("text-edit-service-status")
+//    protected HTML statusText;
     
     @Inject @DataField("view-editor-edit-service")
     protected ViewEditorPanel viewEditorPanel;
@@ -137,7 +135,7 @@ public class EditDataServiceScreen extends Composite {
     protected void postConstruct() {
         doGetQueryableSources();
         
-		statusClickSave = i18n.format("editdataservice.status-label-click-save");
+//		statusClickSave = i18n.format("editdataservice.status-label-click-save");
 		
 		viewEditorPanel.setTitle(i18n.format("editdataservice.vieweditor-title"));
 		viewEditorPanel.setDescription(i18n.format("editdataservice.vieweditor-description"));
@@ -152,6 +150,9 @@ public class EditDataServiceScreen extends Composite {
             	updateStatus();
             }
         });
+		
+		serviceDescriptionTextBox.setLabelText("Description");
+		serviceDescriptionTextBox.setLabelVisible(true);
 		
     	// Tooltips
     	serviceNameTextBox.setTitle(i18n.format("editdataservice.serviceNameTextBox.tooltip"));
@@ -188,21 +189,21 @@ public class EditDataServiceScreen extends Composite {
         // Checks validity of service name entry
 		boolean isOK = serviceNameTextBox.isValid();
 		if(!isOK) {
-			String resolveEntriesMsg = i18n.format("editdataservice.status-resolve-form-entries");
-        	statusText.setHTML(UiUtils.getStatusMessageHtml(resolveEntriesMsg,UiUtils.MessageType.SUCCESS));
+//			String resolveEntriesMsg = i18n.format("editdataservice.status-resolve-form-entries");
+//        	statusText.setHTML(UiUtils.getStatusMessageHtml(resolveEntriesMsg,UiUtils.MessageType.SUCCESS));
 		}
     	
 		// Check for missing view DDL - if serviceName passed
     	if(isOK) {
     		String viewEditorStatus = viewEditorPanel.getStatus();
     		if(!Constants.OK.equals(viewEditorStatus)) {
-            	statusText.setHTML(UiUtils.getStatusMessageHtml(viewEditorStatus,UiUtils.MessageType.SUCCESS));
-    			isOK = false;
+//            	statusText.setHTML(UiUtils.getStatusMessageHtml(viewEditorStatus,UiUtils.MessageType.SUCCESS));
+//    			isOK = false;
     		}
     	}
     	
     	if(isOK) {
-        	statusText.setHTML(UiUtils.getStatusMessageHtml(statusClickSave,UiUtils.MessageType.SUCCESS));
+//        	statusText.setHTML(UiUtils.getStatusMessageHtml(statusClickSave,UiUtils.MessageType.SUCCESS));
     		saveServiceButton.setEnabled(true);
     	} else {
     		saveServiceButton.setEnabled(false);
@@ -224,8 +225,8 @@ public class EditDataServiceScreen extends Composite {
             			String description = vdbModel.getDescription();
             			serviceDescriptionTextBox.setText(description);
             			
-            			boolean isVisible = vdbModel.isVisible();
-            			serviceVisibleCheckBox.setValue(isVisible);
+            			//boolean isVisible = vdbModel.isVisible();
+            			//serviceVisibleCheckBox.setValue(isVisible);
             			
             			String ddl = vdbModel.getDdl();
             			// Remove the REST procedure from the model DDL.  It will be re-generated when the service is saved.
@@ -277,7 +278,7 @@ public class EditDataServiceScreen extends Composite {
             	
     	final String viewModel = serviceName;
     	String serviceDescription = this.serviceDescriptionTextBox.getText();
-    	boolean isVisible = serviceVisibleCheckBox.getValue();
+    	//boolean isVisible = serviceVisibleCheckBox.getValue();
     	List<String> rqdImportVdbNames = viewEditorPanel.getViewSourceVdbNames();
     	
     	// DDL for the View
@@ -293,7 +294,7 @@ public class EditDataServiceScreen extends Composite {
     	viewModelRequest.setName(serviceName);
     	viewModelRequest.setDescription(serviceDescription);
     	viewModelRequest.setDdl(modelDdl);
-    	viewModelRequest.setVisible(isVisible);
+    	viewModelRequest.setVisible(true);
     	viewModelRequest.setRequiredImportVdbNames(rqdImportVdbNames);
     	    	
     	// VDB properties
@@ -358,13 +359,16 @@ public class EditDataServiceScreen extends Composite {
     		@Override
     		public void onReturn(List<DataSourcePageRow> dsInfos) {
     			// Update the list of queryable data sources
-    			List<String> queryableDSNames = new ArrayList<String>();
+    			List<DataSourcePageRow> queryableSources = new ArrayList<DataSourcePageRow>();
     			for(DataSourcePageRow row : dsInfos) {
     				if(row.getState()==DataSourcePageRow.State.OK) {
-            			queryableDSNames.add(row.getName());
+    					queryableSources.add(row);
     				}
     			}
-    			viewEditorPanel.setAvailableSources(queryableDSNames);
+    			// Set available sources on the editorManager
+    			ViewEditorManager.getInstance().setAvailableSources(queryableSources);
+    			// Tells editor wizard to refresh with the manager available sources
+    			viewEditorPanel.refreshAvailableSources();
     		}
     		@Override
     		public void onError(Throwable error) {
@@ -432,13 +436,13 @@ public class EditDataServiceScreen extends Composite {
     private void saveServiceState() {
     	String svcName = serviceNameTextBox.getText();
     	String svcDescription = serviceDescriptionTextBox.getText();
-    	boolean isVisible = serviceVisibleCheckBox.getValue();
+    	//boolean isVisible = serviceVisibleCheckBox.getValue();
     	String viewDdl = viewEditorPanel.getViewDdl();
     	List<String> viewSources = viewEditorPanel.getViewSources();
     	stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_ORIGINAL_NAME, serviceOriginalName);
 		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_NAME, svcName);
 		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_DESC, svcDescription);
-		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_VISIBILITY, isVisible);
+		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_VISIBILITY, true);
 		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_DDL, viewDdl);
 		stateService.put(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_SRCS, viewSources);
     }
@@ -450,14 +454,14 @@ public class EditDataServiceScreen extends Composite {
     	serviceOriginalName = (String)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_ORIGINAL_NAME);
     	String svcName = (String)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_NAME);
     	String svcDesc = (String)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_DESC);
-    	Boolean svcVisibility = (Boolean)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_VISIBILITY);
+    	//Boolean svcVisibility = (Boolean)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_VISIBILITY);
     	String svcViewDdl = (String)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_DDL);
     	@SuppressWarnings("unchecked")
 		List<String> svcViewSrcs = (List<String>)stateService.get(ApplicationStateKeys.IN_PROGRESS_SVC_VIEW_SRCS);
     	
     	serviceNameTextBox.setText(svcName);
     	serviceDescriptionTextBox.setText(svcDesc);
-    	serviceVisibleCheckBox.setValue(svcVisibility);
+    	//serviceVisibleCheckBox.setValue(svcVisibility);
     	viewEditorPanel.setViewDdl(svcViewDdl);
     	viewEditorPanel.setViewSources(svcViewSrcs);
     	viewEditorPanel.setServiceName(svcName);

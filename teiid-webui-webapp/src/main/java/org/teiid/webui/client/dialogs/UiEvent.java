@@ -17,13 +17,18 @@ package org.teiid.webui.client.dialogs;
 
 import java.util.List;
 
+import org.teiid.webui.client.widgets.vieweditor.TableListItem;
+
 public class UiEvent {
 	
 	private UiEventType type;
 	private String dataSourceName;
 	private String dataServiceName;
+	private String tableName;
 	private String eventSource;
 	private String viewDdl;
+	private List<TableListItem> newTables;
+	private TableListItem removeTable;
 	private List<String> viewSources;
 	
 	public UiEvent(UiEventType type) {
@@ -42,12 +47,36 @@ public class UiEvent {
 		this.dataSourceName = dataSourceName;
 	}
 	
+	public List<TableListItem> getNewTables() {
+		return this.newTables;
+	}
+
+	public void setNewTables(List<TableListItem> newTables) {
+		this.newTables = newTables;
+	}
+	
+	public TableListItem getRemoveTable() {
+		return removeTable;
+	}
+
+	public void setRemoveTable(TableListItem removeTable) {
+		this.removeTable = removeTable;
+	}
+
 	public String getDataServiceName() {
 		return dataServiceName;
 	}
 
 	public void setDataServiceName(String dataServiceName) {
 		this.dataServiceName = dataServiceName;
+	}
+
+	public String getTableName() {
+		return tableName;
+	}
+
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
 	}
 
 	public String getEventSource() {

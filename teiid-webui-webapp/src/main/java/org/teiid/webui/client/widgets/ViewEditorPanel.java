@@ -26,6 +26,9 @@ import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.constants.IconPosition;
+import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
@@ -39,6 +42,8 @@ import org.teiid.webui.client.services.rpc.IRpcServiceInvocationHandler;
 import org.teiid.webui.client.widgets.validation.EmptyNameValidator;
 import org.teiid.webui.client.widgets.validation.TextChangeListener;
 import org.teiid.webui.client.widgets.validation.ValidatingTextArea;
+import org.teiid.webui.client.widgets.vieweditor.ViewEditorManager;
+import org.teiid.webui.client.widgets.vieweditor.ViewEditorWizardPanel;
 import org.teiid.webui.share.Constants;
 import org.teiid.webui.share.beans.NotificationBean;
 import org.teiid.webui.share.beans.VdbDetailsBean;
@@ -49,7 +54,6 @@ import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TextArea;
@@ -57,6 +61,8 @@ import com.google.gwt.user.client.ui.TextArea;
 @Templated("./ViewEditorPanel.html")
 public class ViewEditorPanel extends Composite {
 
+	private static final String TEST_BUTTON_TEXT = "Test Service";
+	
 	private String serviceName = null;
 	private boolean haveSuccessfullyTested = false;
 	private String statusEnterName = null;
@@ -65,8 +71,7 @@ public class ViewEditorPanel extends Composite {
 	private String statusTestView = null;
 	private String queryResultDefaultMsg = null;
 	private String currentStatus = null;
-	private String owner;
-	private List<String> availableSourceNames = new ArrayList<String>();
+	//private List<String> availableSourceNames = new ArrayList<String>();
 	
     @Inject
     private PlaceManager placeManager;
@@ -86,9 +91,6 @@ public class ViewEditorPanel extends Composite {
     @Inject @DataField("label-vieweditor-description")
     protected Label viewEditorPanelDescription;
     
-    @Inject @DataField("btn-vieweditor-manage-sources")
-    protected Button manageSourceButton;
-    
     @Inject @DataField("textarea-vieweditor-viewDdl")
     protected ValidatingTextArea viewDdlTextArea;
     
@@ -101,22 +103,22 @@ public class ViewEditorPanel extends Composite {
     @Inject @DataField("btn-vieweditor-test")
     protected Button testViewButton;
     
-	private String workingDdl;
+    private String workingDdl;
 	private List<String> workingViewSrcNames;
 	
     @Inject Event<UiEvent> stateChangedEvent;
 
     // Single Source Editor
-    @Inject @DataField("single-source-editor")
-    private SingleSourceEditorPanel singleSourceEditorPanel;
+    @Inject @DataField("view-editor-wizard")
+    private ViewEditorWizardPanel viewEditorWizardPanel;
     
-    // Join Editor
-    @Inject @DataField("join-editor")
-    private JoinEditorPanel joinEditorPanel;
-    
-    // Templates Editor
-    @Inject @DataField("templates-editor")
-    private TemplatesEditorPanel templatesEditorPanel;
+//    // Join Editor
+//    @Inject @DataField("join-editor")
+//    private JoinEditorPanel joinEditorPanel;
+//    
+//    // Templates Editor
+//    @Inject @DataField("templates-editor")
+//    private TemplatesEditorPanel templatesEditorPanel;
     
     // The results panel for display of example data
     private QueryResultsPanel queryResultsPanel;
@@ -153,10 +155,13 @@ public class ViewEditorPanel extends Composite {
     	List<String> sList = new ArrayList<String>();
     	viewSourcePanel.setData(sList,sList);
     	
+    	testViewButton.setIcon(IconType.ANGLE_RIGHT);
+    	testViewButton.setIconPosition(IconPosition.RIGHT);
+    	testViewButton.setText(TEST_BUTTON_TEXT);
+		
     	// Tooltips
     	viewDdlTextArea.setTitle(i18n.format("vieweditor-panel.viewDdlTextArea.tooltip"));
     	testViewButton.setTitle(i18n.format("vieweditor-panel.testViewButton.tooltip"));
-    	manageSourceButton.setTitle(i18n.format("vieweditor-panel.manageSourceButton.tooltip"));
 
     	updateStatus();
     }
@@ -178,15 +183,16 @@ public class ViewEditorPanel extends Composite {
     }
     
     /**
-     * Sets the available dataSources for the editor
-     * @param availableSourceNames the available sources
+     * Refresh the available dataSources from the editorManager
      */
-	public void setAvailableSources(List<String> availableSourceNames) {
-		this.availableSourceNames.clear();
-		this.availableSourceNames.addAll(availableSourceNames);
-		singleSourceEditorPanel.setAvailableSources(availableSourceNames);
-		joinEditorPanel.setAvailableSources(availableSourceNames);
-		viewSourcePanel.setAllAvailableSources(availableSourceNames);
+	public void refreshAvailableSources( ) {
+		//this.availableSourceNames.clear();
+		//this.availableSourceNames.addAll(availableSourceNames);
+		//singleSourceEditorPanel.setAvailableSources(availableSourceNames);
+		//joinEditorPanel.setAvailableSources(availableSourceNames);
+		//ViewEditorManager.getInstance().setAvailableSources(availableSourceNames);
+		viewEditorWizardPanel.refreshAvailableSources();
+		viewSourcePanel.setAllAvailableSources(ViewEditorManager.getInstance().getAvailableSourceNames());
 	}
     
     public void setViewDdl(String ddlStr) {
@@ -195,7 +201,7 @@ public class ViewEditorPanel extends Composite {
     }
     
     public void setViewSources(List<String> viewSources) {
-    	this.viewSourcePanel.setData(viewSources,this.availableSourceNames);
+    	this.viewSourcePanel.setData(viewSources,ViewEditorManager.getInstance().getAvailableSourceNames());
     	updateStatus();
     }
     
@@ -210,15 +216,12 @@ public class ViewEditorPanel extends Composite {
     public void setServiceName(String svcName) {
     	this.serviceName = svcName;
     	this.testSqlTextArea.setText(Constants.BLANK);  // Force reset of test query if service name changes
+    	this.viewEditorWizardPanel.reset();  // Resets any saved state
     	updateStatus();
     }
 
     public void setOwner(String owner) {
-    	this.owner = owner;
-    }
-    
-    public String getOwner() {
-    	return this.owner;
+    	this.viewEditorWizardPanel.setOwner(owner);
     }
     
     /**
@@ -287,7 +290,7 @@ public class ViewEditorPanel extends Composite {
     private void replaceViewDefn(String ddl,List<String> viewSrcNames) {
     	viewDdlTextArea.setText(ddl);  
     	if(viewSrcNames!=null) {
-    		viewSourcePanel.setData(viewSrcNames,singleSourceEditorPanel.getAllSourceNames());
+    		viewSourcePanel.setData(viewSrcNames,ViewEditorManager.getInstance().getAvailableSourceNames());
     	}
     	
     	haveSuccessfullyTested = false;
@@ -302,15 +305,6 @@ public class ViewEditorPanel extends Composite {
     @EventHandler("btn-vieweditor-test")
     public void onTestViewButtonClick(ClickEvent event) {
     	doTestView();
-    }
-    
-    /**
-     * Event handler that fires when the user clicks the Manage Sources button.
-     * @param event
-     */
-    @EventHandler("btn-vieweditor-manage-sources")
-    public void onManageSourcesButtonClick(ClickEvent event) {
-    	fireGoToManageSources();
     }
     
     private void doTestView() {
@@ -419,15 +413,6 @@ public class ViewEditorPanel extends Composite {
      */
     public void fireStateChanged( ) {
     	stateChangedEvent.fire(new UiEvent(UiEventType.VIEW_EDITOR_CHANGED));
-    }
-    
-    /**
-     * Fire go to manage soruces
-     */
-    public void fireGoToManageSources( ) {
-    	UiEvent event = new UiEvent(UiEventType.VIEW_EDITOR_GOTO_MANAGE_SOURCES);
-    	event.setEventSource(getOwner());
-    	stateChangedEvent.fire(event);
     }
     
 	private void updateStatus( ) {

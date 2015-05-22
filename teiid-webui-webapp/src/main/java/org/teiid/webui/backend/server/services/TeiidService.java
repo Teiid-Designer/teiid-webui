@@ -205,6 +205,7 @@ public class TeiidService implements ITeiidService {
     		// If DataSource has a corresponding VDB Source, check connection to the VDB Source
     		if(hasSrcVdbList.get(i)) {
     			String vdbSource = srcVdbPrefix+dsName;
+    	        dataSourcePageRow.setTranslator(getTranslatorForSrcVdb(vdbSource));
     			String connectionStatus = testConnection(vdbSource);
     			if(!connectionStatus.equals(Constants.OK)) {
     				dataSourcePageRow.setState(DataSourcePageRow.State.ERROR);
@@ -283,14 +284,16 @@ public class TeiidService implements ITeiidService {
     	return dsWithVdbDetailsBean;
     }
     
-    private String getTranslatorForSrcVdb(String srcVdbName) throws DataVirtUiException {
+    private String getTranslatorForSrcVdb(String srcVdbName) {
     	String translator = null;
     	
     	VDBMetaData vdb = null;
     	try {
     		vdb = clientAccessor.getClient().getVDB(srcVdbName,1);
     	} catch (Exception e) {
-    		throw new DataVirtUiException(e.getMessage());
+    		// noOp
+    		return translator;
+    		//throw new DataVirtUiException(e.getMessage());
     	}
 
     	// Details for this VDB
