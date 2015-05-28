@@ -27,6 +27,7 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.constants.ButtonType;
 import org.gwtbootstrap3.client.ui.constants.IconPosition;
 import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
@@ -130,6 +131,7 @@ public class ViewEditorPanel extends Composite {
             @Override
 			public void textChanged(  ) {
             	haveSuccessfullyTested = false;
+            	testViewButton.setType(ButtonType.PRIMARY);
             	// Show default querypanel message
             	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
             	queryResultsPanel.setVisible(false);
@@ -149,6 +151,7 @@ public class ViewEditorPanel extends Composite {
     	testViewButton.setIcon(IconType.ANGLE_RIGHT);
     	testViewButton.setIconPosition(IconPosition.RIGHT);
     	testViewButton.setText(TEST_BUTTON_TEXT);
+    	testViewButton.setType(ButtonType.DEFAULT);
 		
     	// Tooltips
     	viewDdlTextArea.setTitle(i18n.format("vieweditor-panel.viewDdlTextArea.tooltip"));
@@ -183,6 +186,7 @@ public class ViewEditorPanel extends Composite {
     
     public void setViewDdl(String ddlStr) {
     	this.viewDdlTextArea.setText(ddlStr); 
+    	testViewButton.setType(ButtonType.PRIMARY);
     	updateStatus();
     }
     
@@ -278,6 +282,7 @@ public class ViewEditorPanel extends Composite {
     		viewSourcePanel.setData(viewSrcNames,ViewEditorManager.getInstance().getAvailableSourceNames());
     	}
     	
+    	testViewButton.setType(ButtonType.PRIMARY);
     	haveSuccessfullyTested = false;
     	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
     	updateStatus();
@@ -341,6 +346,7 @@ public class ViewEditorPanel extends Composite {
                 } else {
                 	haveSuccessfullyTested = true;
 
+                	testViewButton.setType(ButtonType.DEFAULT);
                 	String testVdbJndi = Constants.JNDI_PREFIX+testVDBName;
                 	String serviceSampleSQL = testSqlTextArea.getText();
                 	queryResultsPanel.showResultsTable(testVdbJndi, serviceSampleSQL);

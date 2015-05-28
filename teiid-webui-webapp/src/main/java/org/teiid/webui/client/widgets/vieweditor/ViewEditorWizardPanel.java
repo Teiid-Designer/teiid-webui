@@ -204,10 +204,13 @@ public class ViewEditorWizardPanel extends Composite {
     		int visiblePage = wizardDeckPanel.getVisibleWidget();
     		if(visiblePage==LAST_PAGE_SELECT_TABLE_COLS_INDX) {
     			selectTableColumnsPage.replaceDdlClicked();
+        		nextOrReplaceButton.setType(ButtonType.DEFAULT);
     		} else if(visiblePage==DEFINE_TEMPLATE_PAGE_INDX) {
     			defineTemplateDdlPage.replaceDdlClicked();
+        		nextOrReplaceButton.setType(ButtonType.DEFAULT);
     		} else if(visiblePage==LAST_PAGE_DEFINE_JOIN_INDX) {
     			defineJoinCriteriaPage.replaceDdlClicked();
+        		nextOrReplaceButton.setType(ButtonType.DEFAULT);
     		}
     	}
     }

@@ -83,7 +83,7 @@ public interface AppImages extends ClientBundle {
     @Source("images/Teiid_dv_logos_170x50.png")
     ImageResource dsType_teiid();
 
-    @Source("images/Teiid_dv_logos_170x50.png")
+    @Source("images/Teiid_local_dv_logos_170x50.png")
     ImageResource dsType_teiid_local();
     
     @Source("images/LDAP_dv_logos_170x50.png")
@@ -127,6 +127,9 @@ public interface AppImages extends ClientBundle {
 
     @Source("images/Teiid_dv_logos_70x40.png")
     ImageResource dsType_teiid_small_Image();
+    
+    @Source("images/Teiid_local_dv_logos_70x40.png")
+    ImageResource dsType_teiid_local_small_Image();
     
     @Source("images/LDAP_dv_logos_70x40.png")
     ImageResource dsType_ldap_small_Image();
