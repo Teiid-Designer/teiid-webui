@@ -27,6 +27,7 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.constants.ButtonType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
@@ -63,7 +64,6 @@ import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.IsWidget;
 
@@ -198,15 +198,17 @@ public class EditDataServiceScreen extends Composite {
     		String viewEditorStatus = viewEditorPanel.getStatus();
     		if(!Constants.OK.equals(viewEditorStatus)) {
 //            	statusText.setHTML(UiUtils.getStatusMessageHtml(viewEditorStatus,UiUtils.MessageType.SUCCESS));
-//    			isOK = false;
+    			isOK = false;
     		}
     	}
     	
     	if(isOK) {
 //        	statusText.setHTML(UiUtils.getStatusMessageHtml(statusClickSave,UiUtils.MessageType.SUCCESS));
     		saveServiceButton.setEnabled(true);
+    		saveServiceButton.setType(ButtonType.PRIMARY);
     	} else {
     		saveServiceButton.setEnabled(false);
+    		saveServiceButton.setType(ButtonType.DEFAULT);
     	}
     }
         

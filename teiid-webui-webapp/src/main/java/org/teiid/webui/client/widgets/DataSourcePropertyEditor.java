@@ -44,6 +44,8 @@ import com.google.gwt.user.client.ui.VerticalPanel;
 public class DataSourcePropertyEditor extends Composite {
 
 	private static final String PASSWORD_KEY = "password"; //$NON-NLS-1$
+	private static final String LDAP_PASSWORD_KEY = "LdapAdminUserPassword"; //$NON-NLS-1$
+	private static final String WS_PASSWORD_KEY = "AuthPassword"; //$NON-NLS-1$
 	
     protected VerticalPanel panel = new VerticalPanel();
     protected Label label = new Label();
@@ -83,7 +85,7 @@ public class DataSourcePropertyEditor extends Composite {
     
     private boolean isPassword(DataSourcePropertyBean prop) {
 		String propName = prop.getName();
-		if( propName!=null && propName.equalsIgnoreCase(PASSWORD_KEY) ) {
+		if( propName!=null && (propName.equalsIgnoreCase(PASSWORD_KEY) || propName.equalsIgnoreCase(LDAP_PASSWORD_KEY) || propName.equalsIgnoreCase(WS_PASSWORD_KEY)) ) {
 			return true;
 		}
 		return false;

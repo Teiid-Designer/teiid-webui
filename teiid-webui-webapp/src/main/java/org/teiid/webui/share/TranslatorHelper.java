@@ -105,6 +105,7 @@ public class TranslatorHelper {
 	public static final String URL_POSTGRES = "jdbc:postgresql://<host>:5432/<dbName>"; //$NON-NLS-1$
 	public static final String URL_SQLSERVER = "jdbc:sqlserver://<host>:1433;databaseName=<dbName>"; //$NON-NLS-1$
 	public static final String URL_TEIID = "jdbc:teiid:<vdbName>@mms://<host>:31000"; //$NON-NLS-1$
+	public static final String URL_TEIID_LOCAL = "jdbc:teiid:<vdbName>"; //$NON-NLS-1$
 	public static final String URL_JDBC = "jdbc://<host>:<port>"; //$NON-NLS-1$
 	public static final String URL_HIVE2 = "jdbc:hive2://<host>:10000/<db>";  //$NON-NLS-1$
 	public static final String URL_H2 = "jdbc:h2:file:<fileLocation>"; //$NON-NLS-1$
@@ -300,6 +301,10 @@ public class TranslatorHelper {
 
 	    if(driverNameLC.contains("iijdbc") || driverNameLC.contains("ingres")) { //$NON-NLS-1$
 			return URL_INGRES;
+		}
+
+		if(driverNameLC.contains("teiid-local")) { //$NON-NLS-1$
+			return URL_TEIID_LOCAL;
 		}
 
 		if(driverNameLC.contains("teiid")) { //$NON-NLS-1$

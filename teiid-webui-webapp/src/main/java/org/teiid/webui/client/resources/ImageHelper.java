@@ -72,6 +72,8 @@ public class ImageHelper {
     		img = AppResource.INSTANCE.images().dsType_salesforce();
     	} else if(dsType.equals(Constants.DS_TYPE_TEIID)) {
     		img = AppResource.INSTANCE.images().dsType_teiid();
+    	} else if(dsType.equals(Constants.DS_TYPE_TEIID_LOCAL)) {
+    		img = AppResource.INSTANCE.images().dsType_teiid_local();
     	} else if(dsType.equals(Constants.DS_TYPE_WEBSERVICE)) {
     		img = AppResource.INSTANCE.images().dsType_webservice();
     	} else if(dsType.toLowerCase().contains(Constants.MYSQL_FRAGMENT)) {
@@ -107,6 +109,8 @@ public class ImageHelper {
     		img = AppResource.INSTANCE.images().dsType_salesforce_small_Image();
     	} else if(dsType.equals(Constants.DS_TYPE_TEIID)) {
     		img = AppResource.INSTANCE.images().dsType_teiid_small_Image();
+    	} else if(dsType.equals(Constants.DS_TYPE_TEIID_LOCAL)) {
+    		img = AppResource.INSTANCE.images().dsType_teiid_local_small_Image();
     	} else if(dsType.equals(Constants.DS_TYPE_WEBSERVICE)) {
     		img = AppResource.INSTANCE.images().dsType_webservice_small_Image();
     	} else if(dsType.toLowerCase().contains(Constants.MYSQL_FRAGMENT)) {
@@ -133,6 +137,7 @@ public class ImageHelper {
     	   dsType.equals(Constants.DS_TYPE_MONGODB) ||
     	   dsType.equals(Constants.DS_TYPE_SALESFORCE) ||
     	   dsType.equals(Constants.DS_TYPE_TEIID) ||
+    	   dsType.equals(Constants.DS_TYPE_TEIID_LOCAL) ||
     	   dsType.equals(Constants.DS_TYPE_WEBSERVICE) ||
     	   dsType.toLowerCase().contains(Constants.MYSQL_FRAGMENT) ||
     	   dsType.toLowerCase().contains(Constants.POSTGRES_FRAGMENT)) {
@@ -169,6 +174,8 @@ public class ImageHelper {
     		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_salesforce_small_Image()).getHTML();
     	} else if(dsType.equals(Constants.DS_TYPE_TEIID)) {
     		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_teiid_small_Image()).getHTML();
+    	} else if(dsType.equals(Constants.DS_TYPE_TEIID_LOCAL)) {
+    		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_teiid_local_small_Image()).getHTML();
     	} else if(dsType.equals(Constants.DS_TYPE_WEBSERVICE)) {
     		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_webservice_small_Image()).getHTML();
     	} else if(dsType.toLowerCase().contains(Constants.MYSQL_FRAGMENT)) {

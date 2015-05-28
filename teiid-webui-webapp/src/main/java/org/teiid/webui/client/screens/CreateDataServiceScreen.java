@@ -27,6 +27,7 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.constants.ButtonType;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
@@ -62,7 +63,6 @@ import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.IsWidget;
 
@@ -194,7 +194,7 @@ public class CreateDataServiceScreen extends Composite {
     		String viewEditorStatus = viewEditorPanel.getStatus();
     		if(!Constants.OK.equals(viewEditorStatus)) {
             	//statusText.setHTML(UiUtils.getStatusMessageHtml(viewEditorStatus,UiUtils.MessageType.SUCCESS));
-    			//isOK = false;
+    			isOK = false;
     		}
     	}
     	
@@ -202,9 +202,11 @@ public class CreateDataServiceScreen extends Composite {
         	//statusText.setHTML(UiUtils.getStatusMessageHtml(statusClickCreate,UiUtils.MessageType.SUCCESS));
     		createServiceButton.setEnabled(true);
     		createServiceButton.setVisible(true);
+    		createServiceButton.setType(ButtonType.PRIMARY);
     	} else {
     		createServiceButton.setEnabled(false);
     		createServiceButton.setVisible(false);
+    		createServiceButton.setType(ButtonType.DEFAULT);
     	}
     }
 	
