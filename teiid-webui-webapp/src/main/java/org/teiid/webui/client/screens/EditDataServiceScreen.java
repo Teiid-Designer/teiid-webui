@@ -151,7 +151,7 @@ public class EditDataServiceScreen extends Composite {
             }
         });
 		
-		serviceDescriptionTextBox.setLabelText("Description");
+		serviceDescriptionTextBox.setLabelText("Description (optional)");
 		serviceDescriptionTextBox.setLabelVisible(true);
 		
     	// Tooltips

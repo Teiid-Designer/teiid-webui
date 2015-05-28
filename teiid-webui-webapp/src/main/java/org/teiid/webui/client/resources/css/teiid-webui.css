@@ -43,3 +43,20 @@
     vertical-align: middle;
     float: none;
 }
+.selectTableStyle {
+    width:260px;
+    height:60px;
+    border:3px solid gray;
+    margin-top:10px;
+    margin-right:10px;
+    float:left;
+}
+.selectPlaceholderStyle {
+    width:260px;
+    height:60px;
+    border:3px dashed gray;
+    background-color: #F5F5F5;
+    margin-top:10px;
+    margin-right:10px;
+    float:left;
+}

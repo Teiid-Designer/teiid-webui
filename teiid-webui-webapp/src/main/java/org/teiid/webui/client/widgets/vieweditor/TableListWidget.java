@@ -20,6 +20,7 @@ import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
 import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.Container;
 import org.gwtbootstrap3.client.ui.Heading;
 import org.gwtbootstrap3.client.ui.Image;
 import org.jboss.errai.databinding.client.api.DataBinder;
@@ -47,6 +48,9 @@ import com.google.gwt.user.client.ui.Widget;
  */
 public class TableListWidget extends Composite implements HasModel<TableListItem> {
 
+	private static final String STYLE_PLACEHOLDER = "selectPlaceholderStyle";
+	private static final String STYLE_NORMAL = "selectTableStyle";
+	
     interface TableListWidgetBinder extends UiBinder<Widget, TableListWidget> {}
     private static TableListWidgetBinder uiBinder = GWT.create(TableListWidgetBinder.class);
     
@@ -55,6 +59,8 @@ public class TableListWidget extends Composite implements HasModel<TableListItem
 
 	@Inject @AutoBound DataBinder<TableListItem> serviceBinder;
 
+	@UiField
+	Container theContainer;
     @UiField
     Heading sourceNameText;
     @UiField
@@ -102,11 +108,15 @@ public class TableListWidget extends Composite implements HasModel<TableListItem
 		serviceBinder.setModel(service);
 		
 		if(getModel().isPlaceHolder()) {
+			this.theContainer.removeStyleName(STYLE_NORMAL);
+			this.theContainer.addStyleName(STYLE_PLACEHOLDER);
 			this.sourceNameText.setText(Constants.BLANK);
 			this.tableNameText.setText(Constants.BLANK);
 			this.sourceTypeImage=null;
 			this.removeTableButton.setVisible(false);
 		} else {
+			this.theContainer.removeStyleName(STYLE_PLACEHOLDER);
+			this.theContainer.addStyleName(STYLE_NORMAL);
 			// Set data source name
 			String srcName = getModel().getSourceName();
 			this.sourceNameText.setText(srcName);

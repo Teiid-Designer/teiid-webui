@@ -20,22 +20,6 @@
 	xmlns:t="urn:import:org.teiid.webui.client.widgets">
 
     <ui:style>
-      .containerStyle {
-	    width:260px;
-        height:60px;
-        border:3px solid gray;
-        margin-top:10px;
-        margin-right:10px;
-        float:left;
-      }
-      .titleRowStyle {
-	    width:250px;
-	    height:25px;
-      }
-      .iconRowStyle {
-	    width:250px;
-	    height:55px;
-      }
       .nameTxtStyle {
         color: #666666;
         font-weight: bold;
@@ -44,24 +28,15 @@
         color: #333333;
         font-weight: normal;
 	  }
-      .vertAlgn {
-        display: inline-block;
-        vertical-align: middle;
-        float:none;
-      }
       .colLeftPadding {
 	    padding-left:3px;
-	  }
-      .colLeftRightPadding {
-	    padding-left:3px;
-	    padding-right:3px;
 	  }
       .colRightPadding {
 	    padding-right:3px;
 	  }
     </ui:style>
 	
-	<b:Container addStyleNames="{style.containerStyle}">
+	<b:Container ui:field="theContainer">
 	  <b:Row>
 	    <b:Column size="SM_4" pull="LEFT" addStyleNames="{style.colLeftPadding}">
           <b:Image pull="LEFT" ui:field="sourceTypeImage"></b:Image>
