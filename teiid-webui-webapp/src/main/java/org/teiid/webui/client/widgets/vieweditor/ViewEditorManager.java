@@ -157,13 +157,7 @@ public class ViewEditorManager {
 		int nTables = getTables().size();
 		List<Boolean> requiredStates = new ArrayList<Boolean>(nTables);
 		for(int i=0; i<nTables; i++) {
-			String sourceType = getSourceTypeForTable(i);
-			String translator = getTranslatorForTable(i);
-			if( (sourceType.equalsIgnoreCase(TranslatorHelper.TEIID_WEBSERVICE_DRIVER)&&!translator.equalsIgnoreCase(TranslatorHelper.ODATA)) || sourceType.equalsIgnoreCase(TranslatorHelper.TEIID_FILE_DRIVER)) {
-				requiredStates.add(true);
-			} else {
-				requiredStates.add(false);
-			}
+			requiredStates.add(tableRequiresTemplate(i));
 		}
 		return requiredStates;
 	}
@@ -185,9 +179,22 @@ public class ViewEditorManager {
 	
 	public boolean tableRequiresTemplate(int tableIndex) {
 		String sourceType = getSourceTypeForTable(tableIndex);
-		if(sourceType!=null && (sourceType.equalsIgnoreCase(TranslatorHelper.TEIID_WEBSERVICE_DRIVER) || sourceType.equalsIgnoreCase(TranslatorHelper.TEIID_FILE_DRIVER))) {
-			return true;
-		} 
+		String translator = getTranslatorForTable(tableIndex);
+		return requiresTemplate(sourceType,translator);
+	}
+	
+	/**
+	 * Determine if the source requires a template
+	 * @param sourceType the source type
+	 * @param translator the translator
+	 * @return 'true' if requires template, 'false' if not
+	 */
+	private boolean requiresTemplate(String sourceType, String translator) {
+		if(sourceType!=null && translator!=null) {
+			if( (sourceType.equalsIgnoreCase(TranslatorHelper.TEIID_WEBSERVICE_DRIVER)&&!translator.equalsIgnoreCase(TranslatorHelper.ODATA)) || sourceType.equalsIgnoreCase(TranslatorHelper.TEIID_FILE_DRIVER)) {
+				return true;
+			} 
+		}
 		return false;
 	}
 
