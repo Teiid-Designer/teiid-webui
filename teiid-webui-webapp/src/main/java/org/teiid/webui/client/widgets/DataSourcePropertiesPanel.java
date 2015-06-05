@@ -118,6 +118,7 @@ public class DataSourcePropertiesPanel extends Composite {
     private String originalType;
     private String originalName;
     private String originalTranslator;
+    private String originalTimeout;
     private boolean isNewSource = false;  // Tracks if DataSourcePageRow is for a brand new source
     private List<String> existingDSNames = new ArrayList<String>();
     
@@ -208,9 +209,10 @@ public class DataSourcePropertiesPanel extends Composite {
         	}
         });
         
+        this.originalTimeout = String.valueOf(Constants.VDB_LOADING_TIMEOUT_SECS);
     	timeoutTextBox.setLabelHTML("<div><h6>Deployment Timeout (sec)</h6></div>");
         timeoutTextBox.setLabelVisible(true);
-        timeoutTextBox.setText(String.valueOf(Constants.VDB_LOADING_TIMEOUT_SECS));
+        timeoutTextBox.setText(this.originalTimeout);
     	timeoutTextBox.addTextChangeListener(new TextChangeListener() {
             @Override
 			public void textChanged(  ) {
@@ -272,7 +274,7 @@ public class DataSourcePropertiesPanel extends Composite {
     		if(isNewSource) {
     			onRedeployConfirmed();    		
     			// Only the translator changed.  No need to muck with DS - just redeploy VDB and its source
-    		} else if(!hasNameChange() && !hasPropertyChanges() && !hasDataSourceTypeChange() && hasTranslatorChange()) {
+    		} else if(!hasNameChange() && !hasTimeoutChange() && !hasPropertyChanges() && !hasDataSourceTypeChange() && hasTranslatorChange()) {
     			DataSourceWithVdbDetailsBean sourceBean = getDetailsBean();
     			doCreateSourceVdbWithTeiidDS(sourceBean,Integer.valueOf(timeoutTextBox.getText()));
     			// No name change
@@ -688,7 +690,8 @@ public class DataSourcePropertiesPanel extends Composite {
     	
         // fire event
         fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_STARTING,dsName,null);
-
+        this.originalTimeout = String.valueOf(vdbDeployTimeoutSec);
+        
         teiidService.createSourceVdbWithTeiidDS(detailsBean, vdbDeployTimeoutSec, new IRpcServiceInvocationHandler<Void>() {
             @Override
             public void onReturn(Void data) {
@@ -723,6 +726,7 @@ public class DataSourcePropertiesPanel extends Composite {
 
         // fire event
         fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_STARTING,dsName,null);
+        this.originalTimeout = String.valueOf(vdbDeployTimeoutSec);
 
         teiidService.createDataSourceWithVdb(detailsBean, vdbDeployTimeoutSec, new IRpcServiceInvocationHandler<Void>() {
             @Override
@@ -767,6 +771,7 @@ public class DataSourcePropertiesPanel extends Composite {
         
         // fire event to show in progress
         fireStatusEvent(UiEventType.DATA_SOURCE_DEPLOY_STARTING,detailsBean.getName(),null);
+        this.originalTimeout = timeoutTextBox.getText();
 
         teiidService.deleteSourcesAndVdbRedeployRenamed(dsNamesToDelete, srcVdbName, detailsBean, new IRpcServiceInvocationHandler<Void>() {
             @Override
@@ -1054,12 +1059,13 @@ public class DataSourcePropertiesPanel extends Composite {
 		boolean hasNameChange = hasNameChange();
 		boolean hasTypeChange = hasDataSourceTypeChange();
 		boolean hasTranslatorChange = hasTranslatorChange();
+		boolean hasTimeoutChange = hasTimeoutChange();
     	boolean hasPropChanges = hasPropertyChanges();
     	boolean hasImportPropChanges = hasImportPropertyChanges();
 		if(this.isNewSource) {
 			cancelSourceChanges.setEnabled(true);
 		} else {
-    		if(hasNameChange || hasTypeChange || hasTranslatorChange || hasPropChanges || hasImportPropChanges) {
+    		if(hasNameChange || hasTypeChange || hasTranslatorChange || hasTimeoutChange || hasPropChanges || hasImportPropChanges) {
     			cancelSourceChanges.setEnabled(true);
     		} else {
     			cancelSourceChanges.setEnabled(false);
@@ -1069,7 +1075,7 @@ public class DataSourcePropertiesPanel extends Composite {
     	// Determine if any properties were changed
     	if(status.equals(Constants.OK)) {
     		setInfoMessage(statusEnterProps);
-    		if(hasNameChange || hasTypeChange || hasTranslatorChange || hasPropChanges || hasImportPropChanges) {
+    		if(hasNameChange || hasTypeChange || hasTranslatorChange || hasTimeoutChange || hasPropChanges || hasImportPropChanges) {
         		saveSourceChanges.setEnabled(true);
         		cancelSourceChanges.setEnabled(true);
     		} else {
@@ -1113,6 +1119,14 @@ public class DataSourcePropertiesPanel extends Composite {
      */
     private boolean hasNameChange() {
     	return !StringUtils.valuesAreEqual(this.originalName, this.nameTextBox.getText());
+    }
+    
+    /**
+     * Returns 'true' if the timeout value has changed, false if not
+     * @return timeout changed status
+     */
+    private boolean hasTimeoutChange() {
+    	return !StringUtils.valuesAreEqual(this.originalTimeout, this.timeoutTextBox.getText());
     }
     
     /**

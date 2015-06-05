@@ -15,8 +15,12 @@
  */
 package org.teiid.webui.client.messages;
 
+import java.util.Collection;
+
 import javax.enterprise.context.ApplicationScoped;
 
+import org.jboss.errai.ioc.client.container.IOC;
+import org.jboss.errai.ioc.client.container.IOCBeanDef;
 import org.jboss.errai.ui.client.local.spi.TranslationService;
 
 import com.google.gwt.core.shared.GWT;
@@ -39,6 +43,15 @@ public class ClientMessages {
     public ClientMessages() {
     }
 
+    /**
+     * @return the service instance
+     */
+    public static ClientMessages get() {
+        Collection<IOCBeanDef<ClientMessages>> beans = IOC.getBeanManager().lookupBeans(ClientMessages.class);
+        IOCBeanDef<ClientMessages> beanDef = beans.iterator().next();
+        return beanDef.getInstance();
+    }
+    
     /**
      * Look up a message in the i18n resource message bundle by key, then format the
      * message with the given arguments and return the result.

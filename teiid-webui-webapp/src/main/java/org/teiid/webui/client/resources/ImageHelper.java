@@ -121,6 +121,9 @@ public class ImageHelper {
     		img = AppResource.INSTANCE.images().dsType_mysql_small_Image();
     	} else if(dsType.toLowerCase().contains(Constants.POSTGRES_FRAGMENT)) {
     		img = AppResource.INSTANCE.images().dsType_postgres_small_Image();
+    	// Defaults to blank box of same size - if specific image not found
+    	} else {
+    		img = AppResource.INSTANCE.images().dsType_blankbox_small_Image();
     	}
     	return img;
     }
