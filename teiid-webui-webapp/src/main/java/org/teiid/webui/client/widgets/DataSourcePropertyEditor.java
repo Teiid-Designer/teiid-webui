@@ -22,10 +22,9 @@ import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.context.Dependent;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
 
 import org.teiid.webui.client.messages.ClientMessages;
+import org.teiid.webui.client.services.EventService;
 import org.teiid.webui.client.widgets.validation.EmptyNameValidator;
 import org.teiid.webui.client.widgets.validation.TextChangeListener;
 import org.teiid.webui.client.widgets.validation.ValidatingTextBoxHoriz;
@@ -53,11 +52,6 @@ public class DataSourcePropertyEditor extends Composite {
     private List<DataSourcePropertyBean> propertyList = new ArrayList<DataSourcePropertyBean>();
     private Map<String,Composite> nameTextBoxMap = new HashMap<String,Composite>();
     
-    @Inject
-    private ClientMessages i18n;
-    
-	@Inject Event<DataSourcePropertyBean> propertyChangeEvent;
-	
     public DataSourcePropertyEditor() {
         initWidget( panel );
     }
@@ -156,7 +150,7 @@ public class DataSourcePropertyEditor extends Composite {
     		ValidatingTextBoxHoriz textBox = (ValidatingTextBoxHoriz)this.nameTextBoxMap.get(propName);
     		propBean.setValue(textBox.getText());
     	}
-        propertyChangeEvent.fire(new DataSourcePropertyBean());
+    	EventService.get().fireDataSourcePropertyChanged();
     }
     
     public void clear() {
@@ -185,7 +179,7 @@ public class DataSourcePropertyEditor extends Composite {
     		// Check that required properties have a value
     		if(isRequired) {
     			if(propValue==null || propValue.trim().length()==0) {
-    				status = i18n.format( "ds-properties-editor.value-required-message",propName);
+    				status = ClientMessages.get().format( "ds-properties-editor.value-required-message",propName);
     				break;
     			}
     		}
@@ -193,8 +187,6 @@ public class DataSourcePropertyEditor extends Composite {
 
     	return status;
     }
-    
-   
     
     public boolean anyPropertyHasChanged() {
     	boolean hasChanges = false;

@@ -233,10 +233,10 @@ public class QueryService implements IQueryService {
 		}
 		if(connection==null) return Constants.TEST_CONNECTION_FAILED;
 		
-    	// Attempt to get tables - to test the connection
+    	// Do a single metadata call - to test the connection
 		String schemaName = dsName.substring(dsName.indexOf(Constants.SERVICE_SOURCE_VDB_PREFIX)+Constants.SERVICE_SOURCE_VDB_PREFIX.length());
 		try {
-			getTeiidTables(connection,dsName,schemaName);
+			doTestConn(connection,dsName,schemaName);
 		} catch (DataVirtUiException e1) {
 			statusMessage = Constants.TEST_CONNECTION_FAILED;
 			return statusMessage;
@@ -604,60 +604,6 @@ public class QueryService implements IQueryService {
      * @param connection the JDBC connection
      * @return the list of table names
      */
-//    private List<QueryTableProcBean> getTables(Connection connection) {
-//    	// Get the list of Tables
-//    	List<String> tableNameList = new ArrayList<String>();
-//    	List<String> tableSchemaList = new ArrayList<String>();
-//    	if(connection!=null) {
-//    		try {
-//    			ResultSet resultSet = connection.getMetaData().getTables(null, null, "%", new String[]{"DOCUMENT", "TABLE", "VIEW"});
-//    			int columnCount = resultSet.getMetaData().getColumnCount();
-//    			while (resultSet.next()) {
-//    				String tableName = null;
-//    				String tableSchema = null;
-//    				for (int i=1 ; i<=columnCount ; ++i) {
-//    					String colName = resultSet.getMetaData().getColumnName(i);
-//    					String value = resultSet.getString(i);
-//    					if (colName.equalsIgnoreCase(TABLE_NAME)) {
-//    						tableName = value;
-//    					} else if(colName.equalsIgnoreCase(TABLE_SCHEM)) {
-//    						tableSchema = value;
-//    					}
-//    				}
-//    				tableNameList.add(tableName);
-//    				tableSchemaList.add(tableSchema);
-//    			}
-//    			resultSet.close();
-//    		} catch (Exception e) {
-//    		}
-//    	}
-//
-//    	List<QueryTableProcBean> resultList = new ArrayList<QueryTableProcBean>(tableNameList.size());
-//    	
-//    	// Build full names if schemaName is present
-//    	for(int i=0; i<tableNameList.size(); i++) {
-//    		QueryTableProcBean tableProcBean = new QueryTableProcBean();
-//    		
-//    		String schemaName = tableSchemaList.get(i);
-//    		if(schemaName!=null && schemaName.length()>0) {
-//    			tableProcBean.setName(schemaName+"."+tableNameList.get(i));
-//    			tableProcBean.setType(QueryTableProcBean.TABLE);
-//    		} else {
-//    			tableProcBean.setName(tableNameList.get(i));
-//    			tableProcBean.setType(QueryTableProcBean.TABLE);
-//    		}
-//    		if(tableProcBean.getName()!=null) {
-//    			resultList.add(tableProcBean);
-//    		}
-//    	}
-//    	return resultList;
-//    }
-
-    /*
-     * Get List of Tables using the supplied connection
-     * @param connection the JDBC connection
-     * @return the list of table names
-     */
     private List<QueryTableProcBean> getTeiidTables(Connection connection, String catalogName, String schemaName) throws DataVirtUiException {
     	// Get the list of Tables
     	List<String> tableNameList = new ArrayList<String>();
@@ -676,6 +622,9 @@ public class QueryService implements IQueryService {
     						tableName = value;
     					} else if(colName.equalsIgnoreCase(TABLE_SCHEM)) {
     						tableSchema = value;
+    					}
+    					if(tableName!=null && tableSchema!=null) {
+    						break;
     					}
     				}
     				tableNameList.add(tableName);
@@ -709,58 +658,19 @@ public class QueryService implements IQueryService {
     }
     
     /*
-     * Get List of Procedures using the supplied connection
+     * Does a single call to test the connection.  Throws exception if there is a problem.
      * @param connection the JDBC connection
-     * @return the list of procedure names
      */
-//    private List<QueryTableProcBean> getProcedures(Connection connection) {
-//    	// Get the list of Procedures
-//    	List<String> procNameList = new ArrayList<String>();
-//    	List<String> procSchemaList = new ArrayList<String>();
-//    	if(connection!=null) {
-//    		try {
-//    			ResultSet resultSet = connection.getMetaData().getProcedures(null, null, "%");
-//    			int columnCount = resultSet.getMetaData().getColumnCount();
-//    			while (resultSet.next()) {
-//    				String procName = null;
-//    				String procSchema = null;
-//    				for (int i=1 ; i<=columnCount ; ++i) {
-//    					String colName = resultSet.getMetaData().getColumnName(i);
-//    					String value = resultSet.getString(i);
-//    					if (colName.equalsIgnoreCase(PROCEDURE_NAME)) {
-//    						procName = value;
-//    					} else if(colName.equalsIgnoreCase(PROCEDURE_SCHEM)) {
-//    						procSchema = value;
-//    					}
-//    				}
-//    				if(procSchema!=null && !procSchema.equalsIgnoreCase(SYS) && !procSchema.equalsIgnoreCase(SYSADMIN)) {
-//    					procNameList.add(procName);
-//    					procSchemaList.add(procSchema);
-//    				}
-//    			}
-//    			resultSet.close();
-//    		} catch (Exception e) {
-//    		}
-//    	}
-//    	
-//    	List<QueryTableProcBean> resultList = new ArrayList<QueryTableProcBean>(procNameList.size());
-//    	
-//    	// Build full names if schemaName is present
-//    	for(int i=0; i<procNameList.size(); i++) {
-//    		QueryTableProcBean tableProcBean = new QueryTableProcBean();
-//
-//    		String schemaName = procSchemaList.get(i);
-//    		if(schemaName!=null && schemaName.length()>0) {
-//    			tableProcBean.setName(schemaName+"."+procNameList.get(i));
-//    			tableProcBean.setType(QueryTableProcBean.PROCEDURE);
-//    		} else {
-//    			tableProcBean.setName(procNameList.get(i));
-//    			tableProcBean.setType(QueryTableProcBean.PROCEDURE);
-//    		}
-//    		resultList.add(tableProcBean);
-//    	}
-//    	return resultList;
-//    }
+    private void doTestConn(Connection connection, String catalogName, String schemaName) throws DataVirtUiException {
+    	if(connection!=null) {
+    		try {
+    			ResultSet resultSet = connection.getMetaData().getTables(catalogName, schemaName, "%", new String[]{"DOCUMENT", "TABLE", "VIEW"});
+    			resultSet.close();
+    		} catch (Exception e) {
+    			throw new DataVirtUiException(e);
+    		}
+    	}
+    }
     
     /*
      * Get List of Procedures using the supplied connection
@@ -817,48 +727,6 @@ public class QueryService implements IQueryService {
     	return resultList;
     }
 
-    /*
-     * Get List of Column names using the supplied connection and table name
-     * @param connection the JDBC connection
-     * @param fullTableName the Table name to get columns
-     * @return the list of QueryColumnBeans
-     */
-//    private List<QueryColumnBean> getColumnsForTable(Connection connection, String fullTableName) throws DataVirtUiException {
-//    	
-//    	List<QueryColumnBean> resultList = new ArrayList<QueryColumnBean>();
-//    	
-//    	if(connection==null || fullTableName==null || fullTableName.trim().isEmpty()) {
-//    		return resultList;
-//    	}
-//
-//    	String schemaName = null;
-//    	String tableName = null;
-//    	int indx = fullTableName.lastIndexOf(".");
-//    	if(indx!=-1) {
-//    		schemaName = fullTableName.substring(0, indx);
-//    		tableName = fullTableName.substring(indx+1);
-//    	} else {
-//    		tableName = fullTableName;
-//    	}
-//
-//    	// Get the column name and type for the supplied schema and tableName
-//    	try {
-//    		ResultSet resultSet = connection.getMetaData().getColumns(null, null, tableName, null);
-//    		while(resultSet.next()) {
-//    			String columnName = resultSet.getString(COLUMN_NAME);
-//    			String columnType = resultSet.getString(TYPE_NAME);
-//    			QueryColumnBean colBean = new QueryColumnBean();
-//    			colBean.setName(columnName);
-//    			colBean.setType(columnType);
-//    			resultList.add(colBean);
-//    		}
-//    		resultSet.close();
-//    	} catch (Exception e) {
-//    	}
-//
-//    	return resultList;
-//    }
-    
     /*
      * Get List of Column names using the supplied connection and table name
      * @param connection the JDBC connection

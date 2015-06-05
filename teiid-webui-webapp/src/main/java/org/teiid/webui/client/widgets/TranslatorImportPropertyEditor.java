@@ -22,10 +22,9 @@ import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.context.Dependent;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
 
 import org.teiid.webui.client.messages.ClientMessages;
+import org.teiid.webui.client.services.EventService;
 import org.teiid.webui.client.widgets.validation.EmptyNameValidator;
 import org.teiid.webui.client.widgets.validation.TextChangeListener;
 import org.teiid.webui.client.widgets.validation.ValidatingTextBoxHoriz;
@@ -51,11 +50,6 @@ public class TranslatorImportPropertyEditor extends Composite {
     private List<TranslatorImportPropertyBean> propertyList = new ArrayList<TranslatorImportPropertyBean>();
     private Map<String,Composite> nameTextBoxMap = new HashMap<String,Composite>();
     
-    @Inject
-    private ClientMessages i18n;
-    
-	@Inject Event<TranslatorImportPropertyBean> propertyChangeEvent;
-	
     public TranslatorImportPropertyEditor() {
         initWidget( panel );
     }
@@ -150,7 +144,7 @@ public class TranslatorImportPropertyEditor extends Composite {
     		ValidatingTextBoxHoriz textBox = (ValidatingTextBoxHoriz)this.nameTextBoxMap.get(propName);
     		propBean.setValue(textBox.getText());
     	}
-        propertyChangeEvent.fire(new TranslatorImportPropertyBean());
+    	EventService.get().fireImportPropertyChanged();
     }
     
     public void clear() {
@@ -179,7 +173,7 @@ public class TranslatorImportPropertyEditor extends Composite {
     		// Check that required properties have a value
     		if(isRequired) {
     			if(propValue==null || propValue.trim().length()==0) {
-    				status = i18n.format( "ds-import-properties-editor.value-required-message",propName);
+    				status = ClientMessages.get().format( "ds-import-properties-editor.value-required-message",propName);
     				break;
     			}
     		}
