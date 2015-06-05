@@ -57,7 +57,6 @@ import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.TextArea;
 
 @Templated("./ViewEditorPanel.html")
 public class ViewEditorPanel extends Composite {
@@ -72,6 +71,7 @@ public class ViewEditorPanel extends Composite {
 	private String statusTestView = null;
 	private String queryResultDefaultMsg = null;
 	private String currentStatus = null;
+	private String testQuery = Constants.BLANK;
 	
     @Inject
     private PlaceManager placeManager;
@@ -94,9 +94,6 @@ public class ViewEditorPanel extends Composite {
     @Inject @DataField("textarea-vieweditor-viewDdl")
     protected ValidatingTextArea viewDdlTextArea;
     
-    @Inject @DataField("textarea-vieweditor-testQuery")
-    protected TextArea testSqlTextArea;
- 
     @Inject @DataField("panel-vieweditor-viewsources")
     protected ViewSourcePanel viewSourcePanel;
     
@@ -168,6 +165,14 @@ public class ViewEditorPanel extends Composite {
     	viewEditorPanelDescription.setText(desc);
     }
     
+    public void hideQueryResults( ) {
+    	haveSuccessfullyTested = false;
+    	testViewButton.setType(ButtonType.PRIMARY);
+    	// Show default querypanel message
+    	queryResultsPanel.showStatusMessage(queryResultDefaultMsg);
+    	queryResultsPanel.setVisible(false);
+    }
+    
     /**
      * Specify the results panel to be used for display of results
      * @param queryResultsPanel the results panel
@@ -205,7 +210,7 @@ public class ViewEditorPanel extends Composite {
     
     public void setServiceName(String svcName) {
     	this.serviceName = svcName;
-    	this.testSqlTextArea.setText(Constants.BLANK);  // Force reset of test query if service name changes
+    	this.testQuery = Constants.BLANK;
     	updateStatus();
     }
 
@@ -348,8 +353,7 @@ public class ViewEditorPanel extends Composite {
 
                 	testViewButton.setType(ButtonType.DEFAULT);
                 	String testVdbJndi = Constants.JNDI_PREFIX+testVDBName;
-                	String serviceSampleSQL = testSqlTextArea.getText();
-                	queryResultsPanel.showResultsTable(testVdbJndi, serviceSampleSQL);
+                	queryResultsPanel.showResultsTable(testVdbJndi, testQuery);
                 	queryResultsPanel.setVisible(true);
                 }
                 updateStatus();
@@ -436,17 +440,14 @@ public class ViewEditorPanel extends Composite {
     		}
     		testViewButton.setEnabled(true);
     		// Populate the Test Query area
-    		if(StringUtils.isEmpty(testSqlTextArea.getText())) {
-    			String testQuery = Constants.SELECT_STAR_FROM+Constants.SPACE + 
+    		if(StringUtils.isEmpty(this.testQuery)) {
+    			this.testQuery = Constants.SELECT_STAR_FROM+Constants.SPACE + 
 			           serviceName+Constants.DOT+Constants.SERVICE_VIEW_NAME+
 			           Constants.SPACE+Constants.LIMIT_10;
-    			testSqlTextArea.setText(testQuery);
     		}
-			testSqlTextArea.setEnabled(true);
     	} else {
     		testViewButton.setEnabled(false);
-			testSqlTextArea.setText(Constants.BLANK);
-			testSqlTextArea.setEnabled(false);
+    		this.testQuery = Constants.BLANK;
     	}
     	
     	fireStateChanged();

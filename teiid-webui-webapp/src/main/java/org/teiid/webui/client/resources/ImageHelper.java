@@ -56,6 +56,8 @@ public class ImageHelper {
     	ImageResource img = null;
     	if(dsType.equals(Constants.DS_TYPE_FILE)) {
     		img = AppResource.INSTANCE.images().dsType_file();
+    	} else if(dsType.equals(Constants.DS_TYPE_ACCUMULO)) {
+    		img = AppResource.INSTANCE.images().dsType_accumulo();
     	} else if(dsType.equals(Constants.DS_TYPE_GOOGLE)) {
     		img = AppResource.INSTANCE.images().dsType_google();
     	} else if(dsType.equals(Constants.DS_TYPE_H2)) {
@@ -93,6 +95,8 @@ public class ImageHelper {
     	ImageResource img = null;
     	if(dsType.equals(Constants.DS_TYPE_FILE)) {
     		img = AppResource.INSTANCE.images().dsType_file_small_Image();
+    	} else if(dsType.equals(Constants.DS_TYPE_ACCUMULO)) {
+    		img = AppResource.INSTANCE.images().dsType_accumulo_small_Image();
     	} else if(dsType.equals(Constants.DS_TYPE_GOOGLE)) {
     		img = AppResource.INSTANCE.images().dsType_google_small_Image();
     	} else if(dsType.equals(Constants.DS_TYPE_H2)) {
@@ -129,18 +133,19 @@ public class ImageHelper {
     public boolean hasKnownImage(String dsType) {
     	boolean hasImage = false;
     	if(dsType.equals(Constants.DS_TYPE_FILE) ||
-    	   dsType.equals(Constants.DS_TYPE_GOOGLE) ||
-    	   dsType.equals(Constants.DS_TYPE_H2) ||
-    	   dsType.equals(Constants.DS_TYPE_INFINISPAN) ||
-    	   dsType.equals(Constants.DS_TYPE_LDAP) ||
-    	   dsType.equals(Constants.DS_TYPE_MODESHAPE) ||
-    	   dsType.equals(Constants.DS_TYPE_MONGODB) ||
-    	   dsType.equals(Constants.DS_TYPE_SALESFORCE) ||
-    	   dsType.equals(Constants.DS_TYPE_TEIID) ||
-    	   dsType.equals(Constants.DS_TYPE_TEIID_LOCAL) ||
-    	   dsType.equals(Constants.DS_TYPE_WEBSERVICE) ||
-    	   dsType.toLowerCase().contains(Constants.MYSQL_FRAGMENT) ||
-    	   dsType.toLowerCase().contains(Constants.POSTGRES_FRAGMENT)) {
+    		dsType.equals(Constants.DS_TYPE_ACCUMULO) ||
+    		dsType.equals(Constants.DS_TYPE_GOOGLE) ||
+    		dsType.equals(Constants.DS_TYPE_H2) ||
+    		dsType.equals(Constants.DS_TYPE_INFINISPAN) ||
+    		dsType.equals(Constants.DS_TYPE_LDAP) ||
+    		dsType.equals(Constants.DS_TYPE_MODESHAPE) ||
+    		dsType.equals(Constants.DS_TYPE_MONGODB) ||
+    		dsType.equals(Constants.DS_TYPE_SALESFORCE) ||
+    		dsType.equals(Constants.DS_TYPE_TEIID) ||
+    		dsType.equals(Constants.DS_TYPE_TEIID_LOCAL) ||
+    		dsType.equals(Constants.DS_TYPE_WEBSERVICE) ||
+    		dsType.toLowerCase().contains(Constants.MYSQL_FRAGMENT) ||
+    		dsType.toLowerCase().contains(Constants.POSTGRES_FRAGMENT)) {
     		hasImage = true;
     	} else {
     		hasImage = false;
@@ -158,6 +163,8 @@ public class ImageHelper {
 
     	if(dsType.equals(Constants.DS_TYPE_FILE)) {
     		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_file_small_Image()).getHTML();
+    	} else if(dsType.equals(Constants.DS_TYPE_ACCUMULO)) {
+    		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_accumulo_small_Image()).getHTML();
     	} else if(dsType.equals(Constants.DS_TYPE_GOOGLE)) {
     		imageHtml = AbstractImagePrototype.create(AppResource.INSTANCE.images().dsType_google_small_Image()).getHTML();
     	} else if(dsType.equals(Constants.DS_TYPE_H2)) {

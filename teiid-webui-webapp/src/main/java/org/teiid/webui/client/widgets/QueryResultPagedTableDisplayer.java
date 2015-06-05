@@ -21,8 +21,6 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
-import org.gwtbootstrap3.client.ui.Button;
-import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.teiid.webui.client.dialogs.UiEvent;
 import org.teiid.webui.client.dialogs.UiEventType;
 import org.teiid.webui.client.services.QueryRpcService;
@@ -33,8 +31,6 @@ import org.teiid.webui.share.beans.QueryResultPageRow;
 import org.uberfire.paging.PageRequest;
 import org.uberfire.paging.PageResponse;
 
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HorizontalPanel;
@@ -112,6 +108,7 @@ public class QueryResultPagedTableDisplayer extends Composite {
      */
     protected HorizontalPanel createDefaultTablePanel() {
     	table = new PagedTable<QueryResultPageRow>(this.numberRows);
+    	table.setToolBarVisible(false);
         TextColumn<QueryResultPageRow> nameColumn = new TextColumn<QueryResultPageRow>() {
             public String getValue( QueryResultPageRow row ) {
                 return row.getColumnData().get(0);
@@ -119,16 +116,6 @@ public class QueryResultPagedTableDisplayer extends Composite {
         };
         table.addColumn( nameColumn, COLUMN_HEADER_NAME );
 
-        final Button refreshButton = new Button();
-        refreshButton.setIcon( IconType.REFRESH );
-        refreshButton.addClickHandler( new ClickHandler() {
-            @Override
-            public void onClick( ClickEvent event ) {
-                table.refresh();
-            }
-        } );
-        table.getToolbar().add( refreshButton );
-        
         HorizontalPanel hPanel = new HorizontalPanel();
         hPanel.add(table);
         return hPanel;
@@ -146,6 +133,7 @@ public class QueryResultPagedTableDisplayer extends Composite {
 			@Override
 			public void onReturn(final List<QueryColumnBean> columns) {
 		    	table = new PagedTable<QueryResultPageRow>(nRows);
+		    	table.setToolBarVisible(false);
 		    	for(int i=0; i<columns.size(); i++) {
 		    		final int colIndx = i;
 		    		TextColumn<QueryResultPageRow> col = new TextColumn<QueryResultPageRow>() {
@@ -156,16 +144,6 @@ public class QueryResultPagedTableDisplayer extends Composite {
 		    		table.addColumn(col,columns.get(i).getName());
 		    	}
 	    		
-	            final Button refreshButton = new Button();
-	            refreshButton.setIcon( IconType.REFRESH );
-	            refreshButton.addClickHandler( new ClickHandler() {
-	                @Override
-	                public void onClick( ClickEvent event ) {
-	                    table.refresh();
-	                }
-	            } );
-	            table.getToolbar().add( refreshButton );
-	           
 	            hPanel.add(table);
 	            tablePanel = hPanel;
 	            tablePanel.setWidth("100%");

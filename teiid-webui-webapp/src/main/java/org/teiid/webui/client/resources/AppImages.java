@@ -56,6 +56,9 @@ public interface AppImages extends ClientBundle {
     @Source("images/bullet_yellow.png")
     ImageResource yellowBulletImage();
 
+    @Source("images/Accumulo_dv_logos_170x50.png")
+    ImageResource dsType_accumulo();
+
     @Source("images/Google_dv_logos_170x50.png")
     ImageResource dsType_google();
 
@@ -100,6 +103,9 @@ public interface AppImages extends ClientBundle {
 
     @Source("images/dstype_blankbox_small.png")
     ImageResource dsType_blankbox_small_Image();
+
+    @Source("images/Accumulo_dv_logos_70x40.png")
+    ImageResource dsType_accumulo_small_Image();
 
     @Source("images/Google_dv_logos_70x40.png")
     ImageResource dsType_google_small_Image();
