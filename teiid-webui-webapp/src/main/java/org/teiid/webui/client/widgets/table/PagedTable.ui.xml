@@ -24,11 +24,11 @@
 
   <ui:style>
     .dataGridContainer {
-    margin: 10px;
+      margin: 10px 0px 0px 0px;
     }
 
     .horizontalContainer {
-    height: 32px;
+      height: 32px;
     }
     .leftToolBar {
       float: left;

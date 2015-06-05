@@ -146,6 +146,7 @@ public class CreateDataServiceScreen extends Composite {
             @Override
 			public void textChanged(  ) {
             	viewEditorPanel.setServiceName(serviceNameTextBox.getText());
+            	viewEditorPanel.hideQueryResults();
             	updateStatus();
             }
         });

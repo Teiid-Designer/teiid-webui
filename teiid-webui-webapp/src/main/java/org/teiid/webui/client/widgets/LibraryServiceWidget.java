@@ -55,11 +55,10 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
     private static LibraryServiceWidgetBinder uiBinder = GWT.create(LibraryServiceWidgetBinder.class);
     
 	private static final String MORE_ACTIONS = "More Actions";
-	private static final String EDIT_ACTION = "Edit Service";
-	private static final String DUPLICATE_ACTION = "Duplicate Service";
-	private static final String TEST_ACTION = "Test Service";
-	private static final String DELETE_ACTION = "Delete Service";
-	private static final String SAVE_TO_FILE_ACTION = "Save to File";
+	private static final String EDIT_ACTION = "Edit";
+	private static final String DUPLICATE_ACTION = "Duplicate";
+	private static final String DELETE_ACTION = "Delete";
+	private static final String SAVE_TO_FILE_ACTION = "Export";
 	
     @Inject
     private ClientMessages i18n;
@@ -117,8 +116,6 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
         			doEditService();
         		} else if(action.equals(DUPLICATE_ACTION)) {
         			doCloneService();
-        		} else if(action.equals(TEST_ACTION)) {
-        			doViewService();
         		} else if(action.equals(DELETE_ACTION)) {
         			doRemoveService();
         		} else if(action.equals(SAVE_TO_FILE_ACTION)) {
@@ -175,9 +172,8 @@ public class LibraryServiceWidget extends Composite implements HasModel<ServiceR
     	moreActionsListBox.insertItem(MORE_ACTIONS, 0);
     	moreActionsListBox.insertItem(EDIT_ACTION, 1);
     	moreActionsListBox.insertItem(DUPLICATE_ACTION, 2);
-    	moreActionsListBox.insertItem(TEST_ACTION, 3);
-    	moreActionsListBox.insertItem(DELETE_ACTION, 4);
-    	moreActionsListBox.insertItem(SAVE_TO_FILE_ACTION, 5);
+    	moreActionsListBox.insertItem(DELETE_ACTION, 3);
+    	moreActionsListBox.insertItem(SAVE_TO_FILE_ACTION, 4);
     	
     	// Initialize by setting the selection to the first item.
     	moreActionsListBox.setSelectedIndex(0);
