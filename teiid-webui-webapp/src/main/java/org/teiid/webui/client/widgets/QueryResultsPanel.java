@@ -124,6 +124,8 @@ public class QueryResultsPanel extends Composite {
     private void showMessage() {
     	if(resultTableVisible) {
     		contentDeckPanel.showWidget(0);
+    		testQueryArea.setVisible(false);
+    		runQueryButton.setVisible(false);
     		resultTableVisible = false;
     	}
     }
@@ -146,6 +148,8 @@ public class QueryResultsPanel extends Composite {
     private void showQueryTable() {
     	if(!resultTableVisible) {
     		contentDeckPanel.showWidget(1);
+    		testQueryArea.setVisible(true);
+    		runQueryButton.setVisible(true);
     		resultTableVisible = true;
     	}
     }

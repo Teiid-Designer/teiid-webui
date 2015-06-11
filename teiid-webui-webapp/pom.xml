@@ -307,7 +307,7 @@
           <server>org.jboss.errai.cdi.server.gwt.JBossLauncher</server>
           <runTarget>teiid-webui-webapp/teiidweb.html</runTarget>
           <localWorkers>4</localWorkers>
-          <module>org.teiid.FastCompiledTeiidWebUI</module>
+          <module>org.teiid.TeiidWebUI</module>
           <logLevel>INFO</logLevel>
           <strict>true</strict>
           <compileSourcesArtifacts>
