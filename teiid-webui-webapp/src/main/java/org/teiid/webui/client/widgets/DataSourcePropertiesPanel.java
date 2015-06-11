@@ -778,7 +778,7 @@ public class DataSourcePropertiesPanel extends Composite {
             public void onReturn(Void data) {
                 notificationService.completeProgressNotification(notificationBean.getUuid(),
                         i18n.format("ds-properties-panel.datasource-created"), //$NON-NLS-1$
-                        i18n.format("ds-properties-panel.create-success-msg")); //$NON-NLS-1$
+                        i18n.format("ds-properties-panel.create-datasource-complete-msg")); //$NON-NLS-1$
                 
                 // if the in-process edit contains the renamed source, update the state service accordingly
                 List<String> updatedViewSrcs = new ArrayList<String>();
